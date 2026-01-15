@@ -17,7 +17,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-icons": "^5.5.0",
-    "react-quill-new": "^1.0.6"
+    "react-quill-new": "latest"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
