@@ -147,10 +147,10 @@ export default function BlogDetail() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
                         {/* Main Content */}
-                        <div className="lg:col-span-2">
-                            <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-slate-100">
+                        <div className="lg:col-span-2 min-w-0">
+                            <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-slate-100 overflow-hidden">
                                 <div
-                                    className="prose prose-lg prose-slate max-w-none prose-img:rounded-xl prose-a:text-blue-600 hover:prose-a:text-blue-700"
+                                    className="prose prose-lg prose-slate max-w-none prose-img:rounded-xl prose-a:text-blue-600 hover:prose-a:text-blue-700 break-words"
                                     dangerouslySetInnerHTML={{ __html: blog.content }}
                                 />
 
