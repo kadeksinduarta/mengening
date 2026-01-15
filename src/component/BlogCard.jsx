@@ -23,7 +23,7 @@ const BlogCard = ({ blog }) => {
           {blog.title}
         </h2>
         <p className="text-gray-600 text-sm mb-4 line-clamp-3 flex-grow">
-          {blog.content}
+          {blog.content?.replace(/<[^>]*>/g, '')}
         </p>
         <div className="mt-auto flex justify-between items-center">
           <div>
