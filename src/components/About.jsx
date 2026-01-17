@@ -39,7 +39,8 @@ export default function About() {
       >
         <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">Tentang Kami</span>
         <h2 className="text-4xl md:text-5xl font-bold font-playfair text-slate-900 mb-10 leading-tight">
-          Pura Mengening
+          Tasya Melukat <br />
+          <span className="text-blue-600">Pura Mengening</span>
         </h2>
 
         <div className="space-y-7 text-slate-600 leading-relaxed text-lg font-light">

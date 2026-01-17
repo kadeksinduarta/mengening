@@ -38,11 +38,19 @@ export default function Navbar() {
             {/* Logo */}
             <a
               href="/"
-              className={`text-3xl font-bold tracking-tight transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"
-                }`}
-              style={{ fontFamily: "'Playfair Display', serif" }}
+              className="flex items-center gap-3 group"
             >
-              Mengening.
+              <img
+                src="/Logo_Tasya.png"
+                alt="Tasya Melukat"
+                className={`w-10 h-10 rounded-xl transition-all duration-300 ${scrolled || isOpen ? "shadow-md" : "brightness-110"}`}
+              />
+              <span
+                className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"}`}
+                style={{ fontFamily: "'Playfair Display', serif" }}
+              >
+                Tasya Melukat
+              </span>
             </a>
 
             {/* Desktop Menu */}

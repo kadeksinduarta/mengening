@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import SEO from '@/components/SEO';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
@@ -76,25 +76,13 @@ export default function BlogDetail() {
 
     return (
         <>
-            <Head>
-                <title>{blog.title} - Pura Mengening</title>
-                <meta name="description" content={blog.excerpt || blog.title} />
-                <meta name="keywords" content={`Pura Mengening, ${blog.title}, wisata Bali, budaya Bali`} />
-
-                {/* Open Graph */}
-                <meta property="og:type" content="article" />
-                <meta property="og:title" content={blog.title} />
-                <meta property="og:description" content={blog.excerpt || blog.title} />
-                {blog.image_url && <meta property="og:image" content={blog.image_url} />}
-                <meta property="article:published_time" content={blog.published_date} />
-                <meta property="article:author" content={blog.author || 'Admin'} />
-
-                {/* Twitter */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content={blog.title} />
-                <meta name="twitter:description" content={blog.excerpt || blog.title} />
-                {blog.image_url && <meta name="twitter:image" content={blog.image_url} />}
-            </Head>
+            <SEO
+                title={blog.title}
+                description={blog.excerpt || blog.content.replace(/<[^>]*>/g, '').substring(0, 160)}
+                keywords={`Pura Mengening, ${blog.title}, wisata Bali, budaya Bali, Tasya Melukat`}
+                image={blog.image_url}
+                type="article"
+            />
 
             <div className="min-h-screen bg-slate-50 font-sans">
                 <Navbar />

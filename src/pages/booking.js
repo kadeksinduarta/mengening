@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { api } from '@/utils/api';
@@ -128,9 +128,7 @@ export default function BookingForm() {
     if (submitted) {
         return (
             <>
-                <Head>
-                    <title>Booking Berhasil - Pura Mengening</title>
-                </Head>
+                <SEO title="Booking Berhasil" />
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-50 px-4">
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
@@ -169,14 +167,11 @@ export default function BookingForm() {
 
     return (
         <>
-            <Head>
-                <title>Form Booking Melukat - Pura Mengening</title>
-                <meta
-                    name="description"
-                    content="Lakukan reservasi untuk ritual Melukat di Pura Mengening. Isi form booking untuk pengalaman spiritual yang mendalam di Bali."
-                />
-                <meta name="keywords" content="booking Pura Mengening, reservasi Melukat, booking wisata Bali" />
-            </Head>
+            <SEO
+                title="Form Booking Melukat"
+                description="Lakukan reservasi untuk ritual Melukat di Pura Mengening bersama Tasya Melukat. Isi form booking untuk pengalaman spiritual yang mendalam di Bali."
+                keywords="booking Pura Mengening, reservasi Melukat, booking wisata Bali, Tasya Melukat"
+            />
 
             <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
                 <div className="max-w-4xl mx-auto">

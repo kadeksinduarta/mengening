@@ -11,9 +11,12 @@ const Footer = () => {
     <footer className="bg-slate-900 text-slate-400 font-sans border-t border-slate-800">
       <div className="container mx-auto px-6 py-16">
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left mb-12">
-          <div>
-            <p className="text-3xl font-playfair font-bold text-white mb-2">Tasya Melukat</p>
-            <p className="text-slate-500 text-sm tracking-wide">Pura Mengening, Tampaksiring, Bali</p>
+          <div className="flex items-center gap-4 mb-6 md:mb-0">
+            <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 h-16 rounded-2xl shadow-2xl shadow-blue-500/20" />
+            <div>
+              <p className="text-3xl font-playfair font-bold text-white mb-1">Tasya Melukat</p>
+              <p className="text-slate-500 text-sm tracking-wide">Pura Mengening, Tampaksiring, Bali</p>
+            </div>
           </div>
 
           <div className="flex space-x-6 mt-6 md:mt-0">

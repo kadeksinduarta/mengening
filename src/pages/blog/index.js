@@ -1,4 +1,4 @@
-import Head from 'next/head';
+import SEO from '@/components/SEO';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import BlogCard from '@/component/BlogCard';
@@ -41,24 +41,11 @@ export default function BlogPage() {
 
     return (
         <>
-            <Head>
-                <title>Artikel & Berita - Pura Mengening</title>
-                <meta
-                    name="description"
-                    content="Temukan wawasan terbaru seputar Pura Mengening, ritual Melukat, dan budaya Bali. Baca artikel informatif tentang wisata spiritual di Bali."
-                />
-                <meta name="keywords" content="artikel Pura Mengening, berita Bali, ritual Melukat, budaya Bali, wisata spiritual" />
-
-                {/* Open Graph */}
-                <meta property="og:type" content="website" />
-                <meta property="og:title" content="Artikel & Berita - Pura Mengening" />
-                <meta property="og:description" content="Temukan wawasan terbaru seputar Pura Mengening, ritual Melukat, dan budaya Bali." />
-
-                {/* Twitter */}
-                <meta name="twitter:card" content="summary_large_image" />
-                <meta name="twitter:title" content="Artikel & Berita - Pura Mengening" />
-                <meta name="twitter:description" content="Temukan wawasan terbaru seputar Pura Mengening, ritual Melukat, dan budaya Bali." />
-            </Head>
+            <SEO
+                title="Artikel & Berita"
+                description="Temukan wawasan terbaru seputar Pura Mengening, ritual Melukat, dan budaya Bali. Baca artikel informatif tentang wisata spiritual di Bali bersama Tasya Melukat."
+                keywords="artikel Pura Mengening, berita Bali, ritual Melukat, budaya Bali, wisata spiritual, Tasya Melukat"
+            />
 
             <div className="min-h-screen bg-slate-50 font-sans">
                 <Navbar />
