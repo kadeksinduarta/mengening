@@ -38,4 +38,18 @@ apiAuth.interceptors.request.use((config) => {
   return config;
 });
 
+apiAuth.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('user');
+        window.location.href = '/admin/login';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
 export { BACKEND_URL };

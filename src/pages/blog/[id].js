@@ -147,10 +147,10 @@ export default function BlogDetail() {
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
                         {/* Main Content */}
-                        <div className="lg:col-span-2 min-w-0">
-                            <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-slate-100 overflow-hidden">
+                        <div className="lg:col-span-2 w-full max-w-full">
+                            <div className="bg-white rounded-2xl shadow-sm p-8 md:p-12 border border-slate-100 w-full">
                                 <div
-                                    className="prose prose-lg prose-slate max-w-none prose-img:rounded-xl prose-a:text-blue-600 hover:prose-a:text-blue-700 break-words"
+                                    className="prose prose-lg prose-slate max-w-none prose-img:rounded-xl prose-a:text-blue-600 hover:prose-a:text-blue-700 break-words w-full"
                                     dangerouslySetInnerHTML={{ __html: blog.content }}
                                 />
 
@@ -164,7 +164,7 @@ export default function BlogDetail() {
                         </div>
 
                         {/* Sidebar */}
-                        <aside className="space-y-8">
+                        <aside className="space-y-8 min-w-0">
                             <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 sticky top-24">
                                 <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                     <span className="w-1 h-6 bg-blue-600 rounded-full"></span>

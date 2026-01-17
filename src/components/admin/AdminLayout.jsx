@@ -5,10 +5,12 @@ import { LogOut, User, Menu, X } from 'lucide-react';
 
 export default function AdminLayout({ children, title }) {
     const router = useRouter();
-    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [adminName, setAdminName] = useState('Admin');
+    const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
+        setMounted(true);
         const handleResize = () => {
             if (window.innerWidth >= 1024) {
                 setIsSidebarOpen(true);
@@ -43,6 +45,10 @@ export default function AdminLayout({ children, title }) {
             setIsSidebarOpen(false);
         }
     };
+
+    if (!mounted) {
+        return <div className="min-h-screen bg-[#F9FBFC] font-sans" />;
+    }
 
     return (
         <div className="min-h-screen bg-[#F9FBFC] flex font-sans">
@@ -97,22 +103,6 @@ export default function AdminLayout({ children, title }) {
                     {children}
                 </main>
             </div>
-
-            <style jsx global>{`
-                .custom-scrollbar::-webkit-scrollbar {
-                    width: 6px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-track {
-                    background: transparent;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb {
-                    background: #E2E8F0;
-                    border-radius: 10px;
-                }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-                    background: #CBD5E1;
-                }
-            `}</style>
         </div>
     );
 }
