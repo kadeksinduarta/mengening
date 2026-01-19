@@ -411,7 +411,7 @@ export default function BookingForm() {
                                                 >
                                                     <p className="text-sm text-blue-800 font-medium mb-4">
                                                         Silakan transfer ke: <br />
-                                                        <strong className="text-lg">BCA 1234567890 an. Pura Mengening</strong>
+                                                        <strong className="text-lg">Bank Mandiri 1450016415263 an. NI KOMANG TASYA APRI</strong>
                                                     </p>
                                                     <label className="block text-sm font-semibold text-slate-700 mb-2">
                                                         Upload Bukti Transfer

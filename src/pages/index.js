@@ -1,15 +1,15 @@
-import SEO from '@/components/SEO';
-import Navbar from '@/components/Navbar';
-import Home from '@/components/home';
-import About from '@/components/About';
-import Activitas from '@/components/Activitas';
-import Booking from '@/components/Booking';
-import Gallery from '@/components/galery';
-import Contact from '@/components/Contact';
-import Footer from '@/components/Footer';
-import Persyaratan from '@/components/Persyaratan';
-import FAQ from '@/components/FAQ';
-import WhatsappButton from '@/component/WhatsappButton';
+import SEO from "@/components/SEO";
+import Navbar from "@/components/Navbar";
+import Home from "@/components/home";
+import About from "@/components/About";
+import Activitas from "@/components/Activitas";
+// import Booking from "@/components/Booking";
+import Gallery from "@/components/galery";
+import Contact from "@/components/Contact";
+import Footer from "@/components/Footer";
+import Persyaratan from "@/components/Persyaratan";
+import FAQ from "@/components/FAQ";
+import WhatsappButton from "@/component/WhatsappButton";
 
 export default function HomePage() {
   return (
@@ -24,7 +24,7 @@ export default function HomePage() {
       <Home />
       <About id="about" />
       <Activitas />
-      <Booking />
+      {/* <Booking /> */}
       <Persyaratan />
       <FAQ />
       <Gallery />
