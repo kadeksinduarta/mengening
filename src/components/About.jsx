@@ -1,6 +1,9 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "@/contexts/I18nContext";
 
 export default function About() {
+  const { t } = useTranslation();
+
   return (
     <section
       id="about"
@@ -23,7 +26,7 @@ export default function About() {
           />
           {/* Decoration Quote */}
           <div className="absolute -bottom-8 -right-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-50 max-w-xs hidden md:block">
-            <p className="font-playfair italic text-slate-800 text-xl leading-relaxed">"Air suci yang membasuh jiwa."</p>
+            <p className="font-playfair italic text-slate-800 text-xl leading-relaxed">{t("about.quote")}</p>
             <div className="w-12 h-1 bg-blue-600 mt-4 rounded-full"></div>
           </div>
         </div>
@@ -37,39 +40,27 @@ export default function About() {
         transition={{ duration: 0.8, ease: "easeOut" }}
         viewport={{ once: true, amount: 0.3 }}
       >
-        <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">Tentang Kami</span>
+        <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("about.sectionTitle")}</span>
         <h2 className="text-4xl md:text-5xl font-bold font-playfair text-slate-900 mb-10 leading-tight">
-          Tasya Melukat <br />
-          <span className="text-blue-600">Pura Mengening</span>
+          {t("about.heading1")} <br />
+          <span className="text-blue-600">{t("about.heading2")}</span>
         </h2>
 
         <div className="space-y-7 text-slate-600 leading-relaxed text-lg font-light">
-          <p>
-            Pura Mengening dikenal sebagai tempat suci yang memancarkan energi ketenangan.
-            Setiap tetes air suci di sini dipercaya mampu membasuh tidak hanya raga,
-            namun juga menjernihkan pikiran dan hati.
-          </p>
+          <p>{t("about.p1")}</p>
 
-          <p>
-            Bayangkan kesegaran mata air alami yang menyentuh wajah,
-            mengembalikan senyum tulus yang mungkin sempat hilang.
-            Momen <span className="text-blue-600 font-semibold">"hening"</span> yang Anda rasakan adalah
-            tujuan utama dari perjalanan spiritual ini.
-          </p>
+          <p dangerouslySetInnerHTML={{ __html: t("about.p2").replace(/"([^"]*)"/g, '<span class="text-blue-600 font-semibold">"$1"</span>') }}></p>
 
-          <p>
-            Ini bukan sekadar ritual melukat biasa. Ini adalah perjalanan batin
-            untuk menyelaraskan kembali diri dengan alam semesta dan Sang Pencipta.
-          </p>
+          <p>{t("about.p3")}</p>
         </div>
 
         <motion.a
-          href="#booking"
+          href="/booking"
           className="inline-block mt-10 px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-300 shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.98 }}
         >
-          Mulai Perjalanan Spiritual Anda
+          {t("about.cta")}
         </motion.a>
       </motion.div>
     </section>

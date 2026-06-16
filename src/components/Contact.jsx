@@ -1,7 +1,10 @@
 import { motion } from "framer-motion";
 import { MapPin, Mail, Phone, Clock } from "lucide-react";
+import { useTranslation } from "@/contexts/I18nContext";
 
 function Contact() {
+  const { t } = useTranslation();
+
   return (
     <section
       id="contact"
@@ -15,10 +18,10 @@ function Contact() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">Hubungi Kami</span>
-          <h2 className="text-4xl font-bold font-playfair text-slate-900 mb-6">Lokasi & Kontak</h2>
+          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("contact.sectionTitle")}</span>
+          <h2 className="text-4xl font-bold font-playfair text-slate-900 mb-6">{t("contact.heading")}</h2>
           <p className="text-slate-600 max-w-2xl mx-auto font-light">
-            Kami menantikan kedatangan Anda untuk merasakan kedamaian di Pura Mengening.
+            {t("contact.subtitle")}
           </p>
         </motion.div>
 
@@ -42,10 +45,8 @@ function Contact() {
                   <MapPin size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Alamat</h4>
-                  <p className="text-slate-600 leading-relaxed font-light">
-                    Jalan Tirta No.25M, Sareseda, Tampaksiring, <br /> Kabupaten Gianyar, Bali 80552
-                  </p>
+                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.addressTitle")}</h4>
+                  <p className="text-slate-600 leading-relaxed font-light" dangerouslySetInnerHTML={{ __html: t("contact.addressText") }} />
                 </div>
               </div>
 
@@ -55,7 +56,7 @@ function Contact() {
                   <Mail size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Email</h4>
+                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.emailTitle")}</h4>
                   <a href="mailto:info@mengening.com" className="text-slate-600 hover:text-blue-600 transition-colors font-light">
                     info.tasya@melukat.com
                   </a>
@@ -68,7 +69,7 @@ function Contact() {
                   <Phone size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">WhatsApp</h4>
+                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.waTitle")}</h4>
                   <a href="https://wa.me/6285857864840" className="text-slate-600 hover:text-blue-600 transition-colors font-light">
                     +62 8585 7864 840
                   </a>
@@ -81,8 +82,8 @@ function Contact() {
                   <Clock size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">Jam Operasional</h4>
-                  <p className="text-slate-600 font-light">Buka Setiap Hari, 08:00 - 17:00 WITA</p>
+                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.hoursTitle")}</h4>
+                  <p className="text-slate-600 font-light">{t("contact.hoursText")}</p>
                 </div>
               </div>
             </div>

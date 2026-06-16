@@ -1,5 +1,6 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
+import { useTranslation } from '@/contexts/I18nContext';
 
 const SEO = ({
     title,
@@ -10,13 +11,37 @@ const SEO = ({
     type = 'website'
 }) => {
     const router = useRouter();
+    const { t } = useTranslation();
+
     const siteName = 'Tasya Melukat - Pura Mengening';
-    const fullTitle = title ? `${title} | ${siteName}` : siteName;
-    const defaultDescription = 'Pengalaman Melukat yang sakral dan mendamaikan di Pura Mengening, Tampaksiring, Bali. Hubungi Tasya Melukat untuk jadwal dan informasi selengkapnya.';
-    const defaultKeywords = 'Melukat, Pura Mengening, Tampaksiring, Bali, Wisata Budaya, Ritual Bali, Tasya Melukat';
+    const defaultTitle = t('seo.title');
+    const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
+    const defaultDescription = t('seo.description');
+    const defaultKeywords = t('seo.keywords');
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://puramengening.com';
     const fullUrl = url ? `${siteUrl}${url}` : `${siteUrl}${router.asPath}`;
     const ogImage = image || `${siteUrl}/Logo_Tasya.png`;
+
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "TouristAttraction",
+      "name": "Pura Mengening",
+      "description": defaultDescription,
+      "url": siteUrl,
+      "image": ogImage,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": "Tampaksiring",
+        "addressRegion": "Bali",
+        "addressCountry": "ID"
+      },
+      "provider": {
+        "@type": "LocalBusiness",
+        "name": "Tasya Melukat - Jasa Guide Pura Mengening",
+        "image": ogImage,
+        "priceRange": "$$"
+      }
+    };
 
     return (
         <Head>
@@ -24,9 +49,9 @@ const SEO = ({
             <meta name="description" content={description || defaultDescription} />
             <meta name="keywords" content={keywords || defaultKeywords} />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <link rel="icon" href="/Logo_Tasya.png" />
-            <link rel="apple-touch-icon" href="/Logo_Tasya.png" />
-            <link rel="shortcut icon" href="/Logo_Tasya.png" />
+            <link rel="icon" type="image/jpeg" href="/Logo_Tasya.png?v=2" />
+            <link rel="apple-touch-icon" href="/Logo_Tasya.png?v=2" />
+            <link rel="shortcut icon" href="/Logo_Tasya.png?v=2" />
 
             {/* Open Graph */}
             <meta property="og:title" content={fullTitle} />
@@ -44,6 +69,12 @@ const SEO = ({
 
             {/* Canonical Link */}
             <link rel="canonical" href={fullUrl} />
+
+            {/* Structured Data */}
+            <script
+              type="application/ld+json"
+              dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
+            />
         </Head>
     );
 };

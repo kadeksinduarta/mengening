@@ -1,20 +1,23 @@
 import { useEffect } from "react";
 import AOS from "aos";
 import "aos/dist/aos.css";
+import { useTranslation } from "@/contexts/I18nContext";
 
 function Gallery() {
+  const { t } = useTranslation();
+
   useEffect(() => {
     AOS.init({ duration: 800, once: true });
   }, []);
 
   // Filtered high-quality images only
   const images = [
-    { src: "Gallery1.jpg", alt: "Gapura Pura Mengening", span: "col-span-1 md:col-span-2 row-span-2" },
-    { src: "Gallery8.jpg", alt: "Suasana Hening", span: "col-span-1" },
-    { src: "Gallery9.jpg", alt: "Pancuran Air Suci", span: "col-span-1" },
-    { src: "Gallery11.jpg", alt: "Persiapan Canang", span: "col-span-1" },
-    { src: "Gallery12.jpg", alt: "Meditasi Khusyuk", span: "col-span-1 md:col-span-2" },
-    { src: "Gallery14.jpeg", alt: "Keasrian Alam", span: "col-span-1" },
+    { src: "Gallery1.jpg", alt: t("gallery.alt1"), span: "col-span-1 md:col-span-2 row-span-2" },
+    { src: "Gallery8.jpg", alt: t("gallery.alt2"), span: "col-span-1" },
+    { src: "Gallery9.jpg", alt: t("gallery.alt3"), span: "col-span-1" },
+    { src: "Gallery11.jpg", alt: t("gallery.alt4"), span: "col-span-1" },
+    { src: "Gallery12.jpg", alt: t("gallery.alt5"), span: "col-span-1 md:col-span-2" },
+    { src: "Gallery14.jpeg", alt: t("gallery.alt6"), span: "col-span-1" },
   ];
 
   return (
@@ -25,12 +28,12 @@ function Gallery() {
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Judul */}
         <div className="text-center mb-16">
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">Galeri Foto</span>
+          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("gallery.sectionTitle")}</span>
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-slate-900 mb-6">
-            Momen Kedamaian
+            {t("gallery.heading")}
           </h2>
           <p className="text-slate-600 text-lg font-light max-w-2xl mx-auto">
-            Lihatlah bagaimana kedamaian menyatu dengan alam dan tradisi di Pura Mengening.
+            {t("gallery.subtitle")}
           </p>
         </div>
 
@@ -62,10 +65,10 @@ function Gallery() {
         {/* Tombol Aksi */}
         <div className="text-center mt-16">
           <a
-            href="/booking"
+            href="#contact"
             className="inline-block px-10 py-4 border border-blue-600 text-blue-600 rounded-full font-semibold hover:bg-blue-600 hover:text-white transition duration-300"
           >
-            Lihat Paket Ritual
+            {t("gallery.btn")}
           </a>
         </div>
       </div>

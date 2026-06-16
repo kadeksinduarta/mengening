@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/contexts/I18nContext";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const [scrolled, setScrolled] = useState(false);
+  const { language, changeLanguage, t } = useTranslation();
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -14,11 +16,15 @@ export default function Navbar() {
   }, []);
 
   const navItems = [
-    { label: "Home", href: "/", id: "home" },
-    { label: "About", href: "/#about", id: "about" },
-    { label: "Blog", href: "/blog", id: "blog" },
-    { label: "Contact", href: "/#contact", id: "contact" },
+    { label: t("nav.home"), href: "/", id: "home" },
+    { label: t("nav.about"), href: "/#about", id: "about" },
+    { label: t("nav.blog"), href: "/blog", id: "blog" },
+    { label: t("nav.contact"), href: "/#contact", id: "contact" },
   ];
+
+  const toggleLanguage = () => {
+    changeLanguage(language === "en" ? "id" : "en");
+  };
 
   return (
     <>
@@ -54,7 +60,7 @@ export default function Navbar() {
             </a>
 
             {/* Desktop Menu */}
-            <ul className="hidden md:flex md:items-center space-x-10">
+            <ul className="hidden md:flex md:items-center space-x-8">
               {navItems.map((item) => (
                 <li key={item.id}>
                   <a
@@ -68,6 +74,22 @@ export default function Navbar() {
                   </a>
                 </li>
               ))}
+              
+              {/* Language Switcher */}
+              <li>
+                <button
+                  onClick={toggleLanguage}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
+                    scrolled || isOpen
+                      ? "border-slate-300 text-slate-700 hover:bg-slate-100"
+                      : "border-white/40 text-white hover:bg-white/20"
+                  }`}
+                >
+                  <Globe size={14} />
+                  {language === "en" ? "EN" : "ID"}
+                </button>
+              </li>
+
               <li>
                 <a
                   href="/booking"
@@ -76,19 +98,33 @@ export default function Navbar() {
                     : "bg-white text-slate-900 hover:bg-gray-100"
                     }`}
                 >
-                  Book Now
+                  {t("nav.bookNow")}
                 </a>
               </li>
             </ul>
 
-            {/* Mobile Menu Button */}
-            <button
-              className={`md:hidden focus:outline-none transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"
+            {/* Mobile Menu Button & Language toggle */}
+            <div className="flex items-center gap-4 md:hidden">
+              <button
+                onClick={toggleLanguage}
+                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
+                  scrolled || isOpen
+                    ? "border-slate-300 text-slate-700 bg-slate-50"
+                    : "border-white/40 text-white bg-white/10"
                 }`}
-              onClick={() => setIsOpen(!isOpen)}
-            >
-              {isOpen ? <X size={28} /> : <Menu size={28} />}
-            </button>
+              >
+                <Globe size={14} />
+                {language === "en" ? "EN" : "ID"}
+              </button>
+              
+              <button
+                className={`focus:outline-none transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"
+                  }`}
+                onClick={() => setIsOpen(!isOpen)}
+              >
+                {isOpen ? <X size={28} /> : <Menu size={28} />}
+              </button>
+            </div>
           </div>
         </div>
 
@@ -119,7 +155,7 @@ export default function Navbar() {
                     className="block w-full text-center bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30"
                     onClick={() => setIsOpen(false)}
                   >
-                    Book Now
+                    {t("nav.bookNow")}
                   </a>
                 </li>
               </ul>

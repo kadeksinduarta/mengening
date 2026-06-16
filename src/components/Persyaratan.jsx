@@ -7,38 +7,41 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/contexts/I18nContext";
 
 export default function Persyaratan() {
+  const { t } = useTranslation();
+
   const items = [
     {
       icon: <Users className="w-8 h-8" />,
-      title: "Persyaratan Tamu",
-      desc: "Tamu berusia 18 tahun ke atas diutamakan. Untuk anak-anak, wajib didampingi orang tua. Maksimal 10 orang per sesi.",
+      title: t("requirements.guest.title"),
+      desc: t("requirements.guest.desc"),
     },
     {
       icon: <Activity className="w-8 h-8" />,
-      title: "Level Aktivitas",
-      desc: "Aktivitas ringan hingga sedang. Melibatkan berjalan menuruni anak tangga menuju area mata air.",
+      title: t("requirements.activity.title"),
+      desc: t("requirements.activity.desc"),
     },
     {
       icon: <Package className="w-8 h-8" />,
-      title: "Perlengkapan",
-      desc: "Kami menyediakan sarung dan selendang. Mohon bawa pakaian ganti kering dan handuk pribadi.",
+      title: t("requirements.equipment.title"),
+      desc: t("requirements.equipment.desc"),
     },
     {
       icon: <Accessibility className="w-8 h-8" />,
-      title: "Aksesibilitas",
-      desc: "Area pura memiliki banyak anak tangga. Mohon hubungi kami jika Anda memiliki kebutuhan khusus.",
+      title: t("requirements.accessibility.title"),
+      desc: t("requirements.accessibility.desc"),
     },
     {
       icon: <CalendarX className="w-8 h-8" />,
-      title: "Reschedule",
-      desc: "Perubahan jadwal diperbolehkan maksimal 1x24 jam sebelum waktu kedatangan yang telah dipesan.",
+      title: t("requirements.reschedule.title"),
+      desc: t("requirements.reschedule.desc"),
     },
     {
       icon: <AlertTriangle className="w-8 h-8" />,
-      title: "Ketentuan Khusus",
-      desc: "Wanita yang sedang datang bulan (menstruasi) dilarang memasuki area suci pura demi menjaga kesucian.",
+      title: t("requirements.special.title"),
+      desc: t("requirements.special.desc"),
     },
   ];
 
@@ -52,12 +55,12 @@ export default function Persyaratan() {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">Info Penting</span>
+          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("requirements.sectionTitle")}</span>
           <h2 className="text-4xl md:text-5xl font-bold font-playfair text-slate-900 mb-6">
-            Hal Yang Perlu Diketahui
+            {t("requirements.heading")}
           </h2>
           <p className="text-slate-600 max-w-2xl mx-auto text-lg font-light leading-relaxed">
-            Demi kenyamanan dan kekhusyukan bersama, mohon perhatikan beberapa poin berikut sebelum berkunjung.
+            {t("requirements.subtitle")}
           </p>
         </motion.div>
 

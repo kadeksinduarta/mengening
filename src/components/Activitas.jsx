@@ -1,42 +1,45 @@
 import { motion } from "framer-motion";
+import { useTranslation } from "@/contexts/I18nContext";
 
 const canangImage = "../Gallery11.jpg";
 const meditasiImage = "../Gallery12.jpg";
 const melukatImage = "../Gallery8.jpg";
 const sembahyangImage = "../Gallery13.jpg";
 
-const steps = [
-  {
-    id: "01",
-    title: "Membuat Canang",
-    image: canangImage,
-    desc: `Prosesi dimulai dengan membuat canang sari, persembahan kecil penuh makna sebagai wujud syukur dan keharmonisan. Aktivitas ini menenangkan hati dan menyiapkan diri untuk penyucian.`,
-    side: "left",
-  },
-  {
-    id: "02",
-    title: "Meditasi",
-    image: meditasiImage,
-    desc: `Meditasi singkat dilakukan sebelum melukat untuk menenangkan batin dan menyatukan niat. Ditemani suara alam, napas perlahan, dan pikiran yang terbuka untuk menerima energi positif.`,
-    side: "right",
-  },
-  {
-    id: "03",
-    title: "Melukat",
-    image: melukatImage,
-    desc: `Melukat di pancuran suci Mengening adalah inti dari penyucian diri. Air yang mengalir diyakini membersihkan pikiran, hati, dan karma buruk, membawa rasa lega dan keseimbangan spiritual.`,
-    side: "left",
-  },
-  {
-    id: "04",
-    title: "Sembahyang Penutup",
-    image: sembahyangImage,
-    desc: `Usai melukat, dilanjutkan dengan sembahyang penutup sebagai ungkapan terima kasih atas berkah dan pembersihan yang diterima. Momen ini memperkuat ketenangan dan rasa syukur.`,
-    side: "right",
-  },
-];
-
 export default function Activitas() {
+  const { t } = useTranslation();
+
+  const steps = [
+    {
+      id: "01",
+      title: t("activities.step1.title"),
+      image: canangImage,
+      desc: t("activities.step1.desc"),
+      side: "left",
+    },
+    {
+      id: "02",
+      title: t("activities.step2.title"),
+      image: meditasiImage,
+      desc: t("activities.step2.desc"),
+      side: "right",
+    },
+    {
+      id: "03",
+      title: t("activities.step3.title"),
+      image: melukatImage,
+      desc: t("activities.step3.desc"),
+      side: "left",
+    },
+    {
+      id: "04",
+      title: t("activities.step4.title"),
+      image: sembahyangImage,
+      desc: t("activities.step4.desc"),
+      side: "right",
+    },
+  ];
+
   return (
     <section
       id="activities"
@@ -45,12 +48,12 @@ export default function Activitas() {
       <div className="container mx-auto px-6 max-w-6xl relative z-10">
         {/* Judul */}
         <div className="text-center mb-24">
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">Prosesi Ritual</span>
+          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("activities.sectionTitle")}</span>
           <h2 className="text-4xl md:text-5xl font-playfair font-bold text-slate-900 mb-6">
-            Urutan Kegiatan
+            {t("activities.heading")}
           </h2>
           <p className="text-slate-600 text-lg max-w-2xl mx-auto font-light leading-relaxed">
-            Rasakan setiap langkah penyucian diri di Pura Mengening, dari persiapan hingga doa penutup.
+            {t("activities.subtitle")}
           </p>
         </div>
 
@@ -58,7 +61,7 @@ export default function Activitas() {
         <div className="hidden md:block absolute left-1/2 top-40 bottom-20 w-px bg-slate-200 transform -translate-x-1/2"></div>
 
         {/* Timeline Items */}
-        {steps.map((step, index) => (
+        {steps.map((step) => (
           <motion.div
             key={step.id}
             className={`flex flex-col md:flex-row items-center mb-20 relative ${step.side === "right" ? "md:flex-row-reverse" : ""

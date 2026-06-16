@@ -1,0 +1,169 @@
+{
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "blog": "Blog",
+    "contact": "Contact",
+    "bookNow": "Book Now",
+    "language": "EN"
+  },
+  "home": {
+    "title": "Spiritual Purifying",
+    "subtitle": "Experience true peace and spiritual purification through the sacred Melukat ritual at the natural spring of Pura Mengening.",
+    "bookNow": "Book Now",
+    "learnMore": "Learn More",
+    "explore": "Explore"
+  },
+  "seo": {
+    "title": "Pura Mengening Tour Guide & Spiritual Melukat in Bali",
+    "description": "Experience true peace at Pura Mengening. The best tour guide service for spiritual Melukat and cultural experience in Bali with Tasya Melukat.",
+    "keywords": "pura mengening jasa, pura mengening guide, melukat tour bali, spiritual journey bali, tasya melukat, pura mengening temple, bali purification"
+  },
+  "about": {
+    "sectionTitle": "About Us",
+    "heading1": "Tasya Melukat",
+    "heading2": "Pura Mengening",
+    "quote": "\"Holy water that cleanses the soul.\"",
+    "p1": "Pura Mengening is known as a sacred place that radiates the energy of tranquility. Every drop of holy water here is believed to cleanse not only the physical body but also purify the mind and heart.",
+    "p2": "Imagine the refreshing natural spring water touching your face, bringing back the genuine smile that might have been lost. The moment of \"stillness\" you experience is the main goal of this spiritual journey.",
+    "p3": "This is not just an ordinary melukat ritual. It is an inner journey to realign yourself with the universe and the Creator.",
+    "cta": "Start Your Spiritual Journey"
+  },
+  "activities": {
+    "sectionTitle": "Ritual Process",
+    "heading": "Sequence of Activities",
+    "subtitle": "Experience every step of self-purification at Pura Mengening, from preparation to the closing prayer.",
+    "step1": {
+      "title": "Making Canang",
+      "desc": "The procession begins with making canang sari, a small offering full of meaning as an expression of gratitude and harmony. This activity calms the heart and prepares one for purification."
+    },
+    "step2": {
+      "title": "Meditation",
+      "desc": "A brief meditation is done before melukat to calm the inner self and align intentions. Accompanied by the sounds of nature, slow breathing, and an open mind to receive positive energy."
+    },
+    "step3": {
+      "title": "Melukat",
+      "desc": "Melukat at the holy spring of Mengening is the core of self-purification. The flowing water is believed to cleanse the mind, heart, and bad karma, bringing a sense of relief and spiritual balance."
+    },
+    "step4": {
+      "title": "Closing Prayer",
+      "desc": "After melukat, it is followed by a closing prayer as an expression of gratitude for the blessings and cleansing received. This moment strengthens tranquility and gratitude."
+    }
+  },
+  "requirements": {
+    "sectionTitle": "Important Info",
+    "heading": "Things to Know",
+    "subtitle": "For mutual comfort and solemnity, please pay attention to the following points before visiting.",
+    "guest": {
+      "title": "Guest Requirements",
+      "desc": "Guests aged 18 and above are prioritized. Children must be accompanied by parents. Maximum 10 people per session."
+    },
+    "activity": {
+      "title": "Activity Level",
+      "desc": "Light to moderate activity. Involves walking down stairs to the spring area."
+    },
+    "equipment": {
+      "title": "Equipment",
+      "desc": "We provide sarongs and sashes. Please bring dry clothes and a personal towel."
+    },
+    "accessibility": {
+      "title": "Accessibility",
+      "desc": "The temple area has many stairs. Please contact us if you have special needs."
+    },
+    "reschedule": {
+      "title": "Reschedule",
+      "desc": "Schedule changes are allowed a maximum of 1x24 hours before the booked arrival time."
+    },
+    "special": {
+      "title": "Special Conditions",
+      "desc": "Women who are menstruating are not allowed to enter the sacred temple area to maintain its purity."
+    }
+  },
+  "faq": {
+    "sectionTitle": "Common Questions",
+    "heading": "FAQ About Melukat",
+    "subtitle": "Find answers to frequently asked questions about the Melukat ritual at Pura Mengening.",
+    "moreQuestions": "Still have other questions? Don't hesitate to contact us!",
+    "contactBtn": "Contact Us",
+    "items": [
+      {
+        "q": "What is Melukat?",
+        "a": "Melukat is a self-purification ritual in Balinese Hindu tradition performed with holy water. This ritual aims to cleanse oneself from negative energy, bad thoughts, and spiritual burdens. At Pura Mengening, melukat is performed at a natural spring believed to have spiritual power to purify body and soul."
+      },
+      {
+        "q": "Do I have to be Hindu to do Melukat?",
+        "a": "No. Melukat is open to anyone from various religious backgrounds. What matters most is good intentions, a respectful attitude, and a willingness to follow the ritual procedures solemnly. Many tourists from various countries and religions experience the spiritual benefits of this ritual."
+      },
+      {
+        "q": "How long is the Melukat ritual?",
+        "a": "The duration of the Melukat ritual usually ranges from 30-45 minutes, depending on the number of participants and level of solemnity. However, we suggest you allocate about 2 hours for the entire experience, including preparation, changing clothes, and time to reflect after the ritual."
+      },
+      {
+        "q": "What should I bring?",
+        "a": "You only need to bring dry clothes to change into, a personal towel, and comfortable sandals. We provide special sarongs and sashes for the ritual. It is also recommended to bring a plastic bag for wet clothes, although we also provide plastic bags in the package."
+      },
+      {
+        "q": "What is the appropriate attire for Melukat?",
+        "a": "For the ritual, you will use the sarong and sash we provide. Underwear should be simple and modest (t-shirt and shorts). Avoid clothes that are too tight or transparent. After the ritual, you can change into the dry clothes you brought."
+      },
+      {
+        "q": "Can menstruating women do Melukat?",
+        "a": "According to Balinese Hindu custom, menstruating women are not allowed to enter the sacred temple area. This is not discrimination, but part of spiritual beliefs regarding purity. We ask for your understanding and you can reschedule your visit at a more appropriate time."
+      },
+      {
+        "q": "Can children participate in Melukat?",
+        "a": "Yes, children can participate with the note that they must be accompanied by a parent or guardian. For safety and comfort, we recommend a minimum age of 7 years. Parents are fully responsible for their child's safety during the ritual."
+      },
+      {
+        "q": "How to pay?",
+        "a": "We accept Cash payment on location or Bank Transfer before arrival. For transfer payments, you will get account information after filling out the booking form. Please upload proof of transfer to confirm your booking."
+      },
+      {
+        "q": "Can I reschedule or cancel my booking?",
+        "a": "Yes, schedule changes (reschedule) can be made a maximum of 1x24 hours before the booked arrival time. For cancellations, please contact us via WhatsApp. The refund policy will be adjusted according to the cancellation time."
+      },
+      {
+        "q": "What are the spiritual benefits of Melukat?",
+        "a": "Melukat is believed to clear negative energy, reduce mental burdens, increase inner peace, and help you feel spiritually lighter. Many participants feel deep peace, mental clarity, and a feeling of a 'fresh start' after the ritual. However, the benefits felt can vary for each individual."
+      },
+      {
+        "q": "Is there a guide during the ritual?",
+        "a": "Yes, each participant will be accompanied by an experienced guide. The guide will explain each stage of the ritual, help you perform the correct movements and prayers, and ensure you feel comfortable throughout the process. Do not hesitate to ask if anything is unclear."
+      },
+      {
+        "q": "What if I can't swim?",
+        "a": "No need to worry! The Melukat ritual does not require swimming skills. The water in the ritual area is not deep, only waist- to chest-high for an adult. You will stand under the holy water fountain, not swim. A guide will also always accompany you."
+      }
+    ]
+  },
+  "gallery": {
+    "sectionTitle": "Photo Gallery",
+    "heading": "Moments of Peace",
+    "subtitle": "See how peace merges with nature and tradition at Pura Mengening.",
+    "btn": "View Ritual Packages",
+    "alt1": "Mengening Temple Gate",
+    "alt2": "Serene Atmosphere",
+    "alt3": "Holy Spring Water",
+    "alt4": "Preparing Canang",
+    "alt5": "Deep Meditation",
+    "alt6": "Lush Nature"
+  },
+  "contact": {
+    "sectionTitle": "Contact Us",
+    "heading": "Location & Contact",
+    "subtitle": "We look forward to welcoming you to experience peace at Pura Mengening.",
+    "addressTitle": "Address",
+    "addressText": "Jalan Tirta No.25M, Sareseda, Tampaksiring, <br /> Gianyar Regency, Bali 80552",
+    "emailTitle": "Email",
+    "waTitle": "WhatsApp",
+    "hoursTitle": "Operating Hours",
+    "hoursText": "Open Everyday, 08:00 - 17:00 WITA"
+  },
+  "footer": {
+    "location": "Mengening Temple, Tampaksiring, Bali",
+    "waMsg": "Hello 👋\nI would like to ask about the schedule and how to book melukat at Pura Mengening. Thank you 🙏",
+    "rights": "All rights reserved.",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service"
+  }
+}

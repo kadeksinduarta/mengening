@@ -1,10 +1,13 @@
 import React from "react";
+import { useTranslation } from "@/contexts/I18nContext";
 
 const Footer = () => {
+  const { t } = useTranslation();
+
   const whatsappNumber =
     process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "6285857864840";
   const whatsappMessage = encodeURIComponent(
-    "Halo 👋\nSaya ingin menanyakan tentang jadwal dan cara booking melukat di Pura Mengening. Terima kasih 🙏"
+    t("footer.waMsg")
   );
 
   return (
@@ -15,7 +18,7 @@ const Footer = () => {
             <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 h-16 rounded-2xl shadow-2xl shadow-blue-500/20" />
             <div>
               <p className="text-3xl font-playfair font-bold text-white mb-1">Tasya Melukat</p>
-              <p className="text-slate-500 text-sm tracking-wide">Pura Mengening, Tampaksiring, Bali</p>
+              <p className="text-slate-500 text-sm tracking-wide">{t("footer.location")}</p>
             </div>
           </div>
 
@@ -53,11 +56,11 @@ const Footer = () => {
         {/* Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-center text-sm">
           <p className="mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} Tasya Melukat Mengening. All rights reserved.
+            &copy; {new Date().getFullYear()} Tasya Melukat Mengening. {t("footer.rights")}
           </p>
           <div className="flex space-x-6 text-slate-500">
-            <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-white transition-colors">{t("footer.privacy")}</a>
+            <a href="#" className="hover:text-white transition-colors">{t("footer.terms")}</a>
           </div>
         </div>
       </div>
