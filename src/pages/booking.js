@@ -1,12 +1,16 @@
 import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { api } from '@/utils/api';
+import { supabase } from '@/utils/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, User, Mail, Phone, FileText,
     CheckCircle, AlertCircle, ArrowLeft, ArrowRight, Check
 } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export default function BookingForm() {
     const router = useRouter();
@@ -102,13 +106,32 @@ export default function BookingForm() {
         setMessage('');
 
         try {
-            const form = new FormData();
-            Object.entries(formData).forEach(([key, value]) => {
-                if (key === 'bukti_transfer' && value === null) return;
-                form.append(key, value);
-            });
+            let buktiUrl = null;
+            if (formData.bukti_transfer) {
+                const file = formData.bukti_transfer;
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `bukti_transfer/${fileName}`;
+                
+                const { error: uploadError } = await supabase.storage.from('images').upload(filePath, file);
+                if (uploadError) throw uploadError;
+                buktiUrl = filePath;
+            }
 
-            await api.post('/booking', form);
+            const { error: insertError } = await supabase.from('bookings').insert([{
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                tanggal: formData.tanggal,
+                jam: formData.jam,
+                alamat: formData.alamat,
+                tipe: formData.tipe,
+                payment_method: formData.payment_method,
+                bukti_transfer: buktiUrl,
+                catatan: formData.catatan
+            }]);
+            
+            if (insertError) throw insertError;
             setSubmitted(true);
 
             // Redirect to WhatsApp after 2 seconds
@@ -254,48 +277,47 @@ export default function BookingForm() {
                                         </h3>
                                         <div className="space-y-6">
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                <Label className="mb-2 block">
                                                     Nama Lengkap <span className="text-red-500">*</span>
-                                                </label>
-                                                <input
+                                                </Label>
+                                                <Input
                                                     type="text"
                                                     name="name"
                                                     value={formData.name}
                                                     onChange={handleChange}
-                                                    className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400"
                                                     placeholder="Masukkan nama lengkap"
                                                     required
                                                 />
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                <Label className="mb-2 block">
                                                     Email <span className="text-red-500">*</span>
-                                                </label>
+                                                </Label>
                                                 <div className="relative">
-                                                    <Mail size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                    <input
+                                                    <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                    <Input
                                                         type="email"
                                                         name="email"
                                                         value={formData.email}
                                                         onChange={handleChange}
-                                                        className="w-full pl-14 pr-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400"
+                                                        className="pl-10"
                                                         placeholder="email@example.com"
                                                         required
                                                     />
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                <Label className="mb-2 block">
                                                     Nomor WhatsApp <span className="text-red-500">*</span>
-                                                </label>
+                                                </Label>
                                                 <div className="relative">
-                                                    <Phone size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                    <input
+                                                    <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                    <Input
                                                         type="text"
                                                         name="phone"
                                                         value={formData.phone}
                                                         onChange={handleChange}
-                                                        className="w-full pl-14 pr-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400"
+                                                        className="pl-10"
                                                         placeholder="0812xxxx"
                                                         required
                                                     />
@@ -326,49 +348,48 @@ export default function BookingForm() {
                                         <div className="space-y-6">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
-                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                    <Label className="mb-2 block">
                                                         Tanggal <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
+                                                    </Label>
+                                                    <Input
                                                         type="date"
                                                         name="tanggal"
                                                         value={formData.tanggal}
                                                         onChange={handleChange}
-                                                        className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-slate-600"
                                                         required
                                                     />
                                                 </div>
                                                 <div>
-                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                    <Label className="mb-2 block">
                                                         Jam Perkiraan <span className="text-red-500">*</span>
-                                                    </label>
+                                                    </Label>
                                                     <div className="relative">
-                                                        <Clock size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                        <input
+                                                        <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                                                        <Input
                                                             type="time"
                                                             name="jam"
                                                             value={formData.jam}
                                                             onChange={handleChange}
-                                                            className="w-full pl-14 pr-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all text-slate-600"
+                                                            className="pl-10"
                                                             required
                                                         />
                                                     </div>
                                                 </div>
                                             </div>
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                <Label className="mb-2 block">
                                                     Alamat Asal <span className="text-red-500">*</span>
-                                                </label>
+                                                </Label>
                                                 <div className="relative">
-                                                    <MapPin size={18} className="absolute left-5 top-5 text-slate-400" />
-                                                    <textarea
+                                                    <MapPin size={18} className="absolute left-3 top-3 text-slate-400" />
+                                                    <Textarea
                                                         name="alamat"
-                                                        className="w-full pl-14 pr-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 min-h-[100px]"
+                                                        className="pl-10 min-h-[100px]"
                                                         placeholder="Masukkan alamat lengkap atau kota asal..."
                                                         value={formData.alamat}
                                                         onChange={handleChange}
                                                         required
-                                                    ></textarea>
+                                                    />
                                                 </div>
                                             </div>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -413,30 +434,29 @@ export default function BookingForm() {
                                                         Silakan transfer ke: <br />
                                                         <strong className="text-lg">Bank Mandiri 1450016415263 an. NI KOMANG TASYA APRI</strong>
                                                     </p>
-                                                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                    <Label className="mb-2 block">
                                                         Upload Bukti Transfer
-                                                    </label>
-                                                    <input
+                                                    </Label>
+                                                    <Input
                                                         type="file"
                                                         name="bukti_transfer"
                                                         onChange={handleChange}
                                                         accept="image/*"
-                                                        className="block w-full text-sm text-slate-500 file:mr-4 file:py-3 file:px-6 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition"
                                                     />
                                                 </motion.div>
                                             )}
 
                                             <div>
-                                                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                                                <Label className="mb-2 block">
                                                     Catatan Tambahan (Opsional)
-                                                </label>
-                                                <textarea
+                                                </Label>
+                                                <Textarea
                                                     name="catatan"
                                                     value={formData.catatan}
                                                     onChange={handleChange}
-                                                    className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none transition-all placeholder:text-slate-400 min-h-[80px]"
+                                                    className="min-h-[80px]"
                                                     placeholder="Contoh: Saya membutuhkan pemandu berbahasa Inggris..."
-                                                ></textarea>
+                                                />
                                             </div>
                                         </div>
                                     </motion.div>
@@ -536,45 +556,48 @@ export default function BookingForm() {
                                 )}
                             </AnimatePresence>
 
-                            {/* Navigation Buttons */}
                             <div className="flex gap-4 mt-10">
                                 {currentStep > 1 && (
-                                    <button
+                                    <Button
                                         type="button"
+                                        variant="outline"
+                                        size="lg"
                                         onClick={prevStep}
-                                        className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2"
+                                        className="flex-1"
                                     >
-                                        <ArrowLeft size={20} />
+                                        <ArrowLeft size={16} className="mr-2" />
                                         Kembali
-                                    </button>
+                                    </Button>
                                 )}
                                 {currentStep < 3 ? (
-                                    <button
+                                    <Button
                                         type="button"
+                                        size="lg"
                                         onClick={nextStep}
-                                        className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-blue-500/30 transition-all flex items-center justify-center gap-2"
+                                        className="flex-1"
                                     >
                                         Lanjutkan
-                                        <ArrowRight size={20} />
-                                    </button>
+                                        <ArrowRight size={16} className="ml-2" />
+                                    </Button>
                                 ) : (
-                                    <button
+                                    <Button
                                         type="submit"
+                                        size="lg"
                                         disabled={loading}
-                                        className="flex-1 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-bold py-4 rounded-xl shadow-lg shadow-green-500/30 transition-all disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                                        className="flex-1 bg-green-600 hover:bg-green-700 text-white"
                                     >
                                         {loading ? (
                                             <>
-                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                                                 Mengirim...
                                             </>
                                         ) : (
                                             <>
-                                                <CheckCircle size={20} />
+                                                <CheckCircle size={16} className="mr-2" />
                                                 Konfirmasi Booking
                                             </>
                                         )}
-                                    </button>
+                                    </Button>
                                 )}
                             </div>
                         </form>

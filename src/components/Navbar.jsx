@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Menu, X, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/contexts/I18nContext";
+import { Button } from "@/components/ui/button";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -49,14 +50,8 @@ export default function Navbar() {
               <img
                 src="/Logo_Tasya.png"
                 alt="Tasya Melukat"
-                className={`w-10 h-10 rounded-xl transition-all duration-300 ${scrolled || isOpen ? "shadow-md" : "brightness-110"}`}
+                className={`w-25 rounded-xl transition-all duration-300`}
               />
-              <span
-                className={`text-2xl font-bold tracking-tight transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"}`}
-                style={{ fontFamily: "'Playfair Display', serif" }}
-              >
-                Tasya Melukat
-              </span>
             </a>
 
             {/* Desktop Menu */}
@@ -74,49 +69,53 @@ export default function Navbar() {
                   </a>
                 </li>
               ))}
-              
+
               {/* Language Switcher */}
               <li>
-                <button
+                <Button
+                  variant={scrolled || isOpen ? "outline" : "ghost"}
+                  size="sm"
                   onClick={toggleLanguage}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
-                    scrolled || isOpen
-                      ? "border-slate-300 text-slate-700 hover:bg-slate-100"
-                      : "border-white/40 text-white hover:bg-white/20"
-                  }`}
+                  className={`flex items-center gap-1.5 rounded-full text-xs font-semibold uppercase tracking-wider ${scrolled || isOpen
+                    ? ""
+                    : "text-white hover:bg-white/20 hover:text-white"
+                    }`}
                 >
                   <Globe size={14} />
                   {language === "en" ? "EN" : "ID"}
-                </button>
+                </Button>
               </li>
 
-              <li>
-                <a
-                  href="/booking"
-                  className={`px-6 py-2.5 rounded-full text-sm font-semibold transition-all shadow-lg hover:shadow-blue-500/25 active:scale-95 ${scrolled || isOpen
-                    ? "bg-blue-600 text-white hover:bg-blue-700"
-                    : "bg-white text-slate-900 hover:bg-gray-100"
+              {/* <li>
+                <Button
+                  asChild
+                  className={`rounded-full px-6 shadow-lg ${scrolled || isOpen
+                      ? ""
+                      : "bg-white text-slate-900 hover:bg-gray-100"
                     }`}
                 >
-                  {t("nav.bookNow")}
-                </a>
-              </li>
+                  <a href="/booking">
+                    {t("nav.bookNow")}
+                  </a>
+                </Button>
+              </li> */}
             </ul>
 
             {/* Mobile Menu Button & Language toggle */}
             <div className="flex items-center gap-4 md:hidden">
-              <button
+              <Button
+                variant={scrolled || isOpen ? "outline" : "ghost"}
+                size="sm"
                 onClick={toggleLanguage}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all duration-300 border ${
-                  scrolled || isOpen
-                    ? "border-slate-300 text-slate-700 bg-slate-50"
-                    : "border-white/40 text-white bg-white/10"
-                }`}
+                className={`flex items-center gap-1 rounded-full text-xs font-semibold uppercase tracking-wider ${scrolled || isOpen
+                  ? ""
+                  : "text-white bg-white/10 hover:bg-white/20 hover:text-white"
+                  }`}
               >
                 <Globe size={14} />
                 {language === "en" ? "EN" : "ID"}
-              </button>
-              
+              </Button>
+
               <button
                 className={`focus:outline-none transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"
                   }`}
@@ -149,15 +148,13 @@ export default function Navbar() {
                     </a>
                   </li>
                 ))}
-                <li className="pt-4">
-                  <a
-                    href="/booking"
-                    className="block w-full text-center bg-blue-600 text-white py-3 rounded-xl font-semibold shadow-lg shadow-blue-500/30"
-                    onClick={() => setIsOpen(false)}
-                  >
-                    {t("nav.bookNow")}
-                  </a>
-                </li>
+                {/* <li className="pt-4">
+                  <Button asChild className="w-full rounded-xl shadow-lg">
+                    <a href="/booking" onClick={() => setIsOpen(false)}>
+                      {t("nav.bookNow")}
+                    </a>
+                  </Button>
+                </li> */}
               </ul>
             </motion.div>
           )}

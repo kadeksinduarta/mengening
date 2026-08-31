@@ -4,7 +4,10 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { motion } from 'framer-motion';
 import { Users, FileText, Calendar, ArrowRight, MoreVertical, Clock } from 'lucide-react';
 import Link from 'next/link';
-import { apiAuth } from '@/utils/api';
+import { supabase } from '@/utils/supabase';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
@@ -23,8 +26,17 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
         try {
             setLoading(true);
-            const response = await apiAuth.get('/dashboard/stats');
-            setData(response.data);
+            const [{ count: bookingsCount }, { count: blogsCount }, { data: recentBookings }] = await Promise.all([
+                supabase.from('bookings').select('*', { count: 'exact', head: true }),
+                supabase.from('blogs').select('*', { count: 'exact', head: true }),
+                supabase.from('bookings').select('*').order('created_at', { ascending: false }).limit(3)
+            ]);
+
+            setData({
+                bookings_count: bookingsCount || 0,
+                blogs_count: blogsCount || 0,
+                recent_bookings: recentBookings || []
+            });
         } catch (err) {
             console.error('Error fetching stats:', err);
         } finally {
@@ -43,115 +55,122 @@ export default function AdminDashboard() {
                 <title>Dashboard Admin - Pura Mengening</title>
             </Head>
 
-            <div className="flex flex-col xl:flex-row gap-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
                 {/* Left Column: Stats and Activities */}
-                <div className="flex-1 space-y-12">
+                <div className="lg:col-span-2 space-y-6 lg:space-y-8">
                     {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
                         {stats.map((stat, index) => (
                             <motion.div
                                 key={stat.title}
-                                initial={{ opacity: 0, y: 20 }}
+                                initial={{ opacity: 0, y: 15 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1 }}
-                                className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm flex flex-col h-full hover:shadow-xl hover:shadow-slate-200/50 transition-all duration-300"
+                                transition={{ delay: index * 0.1, duration: 0.4 }}
                             >
-                                <div className="flex items-start gap-6 mb-10">
-                                    <div className={`${stat.bgColor} p-4 rounded-2xl text-white shadow-lg shadow-current/20`}>
-                                        <stat.icon size={28} />
-                                    </div>
-                                    <div>
-                                        <p className="text-4xl font-black text-slate-900 mb-1">{stat.value}</p>
-                                        <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">{stat.title}</p>
-                                    </div>
-                                </div>
-                                <div className="mt-auto pt-6 border-t border-dashed border-slate-100 flex items-center justify-between">
-                                    <Link href={stat.title.includes('Bookings') ? '/admin/booking' : '/admin/blog'} className="text-xs font-black text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
-                                        View details
-                                    </Link>
-                                    <ArrowRight size={18} className="text-slate-300" />
-                                </div>
+                                <Card className="hover:shadow-md hover:border-slate-300 transition-all duration-200 rounded-2xl border-slate-200/80 bg-white">
+                                    <CardContent className="p-6 flex items-center justify-between">
+                                        <div className="space-y-1">
+                                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.title}</p>
+                                            <p className="text-3xl font-black text-slate-900">{stat.value}</p>
+                                        </div>
+                                        <div className={`${stat.bgColor} p-3.5 rounded-xl text-white shadow-md shadow-current/10 shrink-0`}>
+                                            <stat.icon size={22} />
+                                        </div>
+                                    </CardContent>
+                                    <CardFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex items-center justify-between">
+                                        <Link href={stat.title.includes('Bookings') ? '/admin/booking' : '/admin/blog'} className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors uppercase tracking-wider">
+                                            View details
+                                        </Link>
+                                        <ArrowRight size={14} className="text-slate-400" />
+                                    </CardFooter>
+                                </Card>
                             </motion.div>
                         ))}
                     </div>
 
                     {/* Activity Section */}
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                         <div>
-                            <h2 className="text-2xl font-black text-slate-900 mb-1">Recent Bookings</h2>
-                            <p className="text-slate-400 text-sm font-bold">Latest ritual booking registrations</p>
+                            <h3 className="text-lg font-bold text-slate-900">Recent Bookings</h3>
+                            <p className="text-slate-400 text-xs font-medium">Latest Melukat ritual booking registrations</p>
                         </div>
 
-                        <div className="bg-white rounded-[2.5rem] border border-slate-100 shadow-sm overflow-hidden p-4">
-                            <div className="space-y-4">
+                        <Card className="rounded-2xl border-slate-200/80 bg-white overflow-hidden">
+                            <CardContent className="p-4 space-y-3">
                                 {loading ? (
                                     [1, 2, 3].map(i => (
-                                        <div key={i} className="h-24 w-full bg-slate-50 animate-pulse rounded-[2rem]"></div>
+                                        <div key={i} className="h-16 w-full bg-slate-50 animate-pulse rounded-xl"></div>
                                     ))
                                 ) : data.recent_bookings.length > 0 ? (
                                     data.recent_bookings.map((booking) => (
-                                        <div key={booking.id} className="flex items-center justify-between p-5 lg:p-7 bg-slate-50/50 border border-slate-100 rounded-[1.5rem] lg:rounded-[2rem] group hover:bg-white hover:border-blue-100 hover:shadow-lg hover:shadow-blue-500/5 transition-all duration-500">
-                                            <div className="flex items-center gap-4 lg:gap-6">
-                                                <div className="w-10 h-10 lg:w-16 lg:h-16 bg-blue-100 rounded-xl lg:rounded-2xl flex items-center justify-center text-blue-600 text-base lg:text-2xl font-black shrink-0">
+                                        <div key={booking.id} className="flex items-center justify-between p-4 bg-slate-50/40 hover:bg-slate-50/80 border border-slate-100 hover:border-slate-200 rounded-xl group transition-all duration-200">
+                                            <div className="flex items-center gap-4 min-w-0">
+                                                <div className="w-10 h-10 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 uppercase">
                                                     {booking.name.charAt(0)}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-black text-slate-900 text-sm lg:text-lg truncate max-w-[140px] lg:max-w-none">
+                                                    <p className="font-semibold text-slate-800 text-sm truncate max-w-[150px] sm:max-w-none">
                                                         {booking.name}
                                                     </p>
-                                                    <p className="text-[10px] text-slate-400 font-black mt-1 uppercase tracking-widest flex items-center gap-2">
-                                                        <span className="w-1 h-1 bg-blue-400 rounded-full shrink-0"></span>
-                                                        <span className="truncate">{booking.tipe}</span>
-                                                    </p>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-slate-100 text-slate-600 border-none font-semibold">
+                                                            {booking.tipe}
+                                                        </Badge>
+                                                        <span className="text-[10px] text-slate-400 font-medium">
+                                                            {new Date(booking.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <Link href="/admin/booking" className="p-2.5 lg:p-3 text-slate-300 hover:text-blue-600 transition-colors bg-white border border-slate-100 rounded-xl shadow-sm shrink-0">
-                                                <ArrowRight size={18} className="lg:w-5 lg:h-5" />
-                                            </Link>
+                                            <Button variant="ghost" size="icon" asChild className="rounded-lg hover:bg-white border hover:border-slate-200 w-8 h-8 shrink-0">
+                                                <Link href="/admin/booking">
+                                                    <ArrowRight size={14} className="text-slate-500" />
+                                                </Link>
+                                            </Button>
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="p-12 text-center text-slate-400 font-bold">
+                                    <div className="p-8 text-center text-slate-400 text-xs font-semibold">
                                         No recent bookings yet.
                                     </div>
                                 )}
-                            </div>
-                            <div className="p-8 text-center border-t border-slate-50 mt-4">
-                                <Link href="/admin/booking" className="text-sm font-black text-slate-400 hover:text-blue-600 transition-colors uppercase tracking-widest">
-                                    See all bookings
-                                </Link>
-                            </div>
-                        </div>
+                            </CardContent>
+                            <CardFooter className="justify-center py-3 border-t border-slate-100 bg-slate-50/50">
+                                <Button variant="ghost" size="sm" asChild className="text-xs font-semibold text-slate-500 hover:text-blue-600 uppercase tracking-wider">
+                                    <Link href="/admin/booking">See all bookings</Link>
+                                </Button>
+                            </CardFooter>
+                        </Card>
                     </div>
                 </div>
 
-                {/* Right Column: Calendar Widget */}
-                <div className="w-full xl:w-96">
-                    <div className="bg-white p-9 rounded-[2.5rem] border border-slate-100 shadow-sm sticky top-8">
-                        <div className="flex items-center justify-between mb-10">
-                            <h3 className="font-black text-slate-900 text-xl tracking-tight">System Status</h3>
-                        </div>
-
-                        <div className="space-y-6">
-                            <div className="p-6 bg-emerald-50 rounded-3xl border border-emerald-100">
-                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-2">Backend API</p>
-                                <p className="text-lg font-black text-emerald-900">Connected</p>
+                {/* Right Column: Calendar / Widgets */}
+                <div className="space-y-6">
+                    <Card className="rounded-2xl border-slate-200/80 bg-white">
+                        <CardHeader className="pb-4">
+                            <CardTitle className="font-bold text-slate-900 text-base">System Status</CardTitle>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                            <div className="p-4 bg-emerald-50/40 rounded-xl border border-emerald-100 flex items-center justify-between">
+                                <div>
+                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Database</p>
+                                    <p className="text-sm font-bold text-emerald-900 mt-0.5">Connected</p>
+                                </div>
+                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                             </div>
-                            <div className="p-6 bg-blue-50 rounded-3xl border border-blue-100">
-                                <p className="text-[10px] font-black text-blue-600 uppercase tracking-widest mb-2">Last Update</p>
-                                <p className="text-lg font-black text-blue-900">{currentTime || '--:--:--'}</p>
+                            <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-100">
+                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Server Local Time</p>
+                                <p className="text-sm font-bold text-blue-900 mt-0.5">{currentTime || '--:--:--'}</p>
                             </div>
-                        </div>
-
-                        <div className="mt-10 pt-8 border-t border-dashed border-slate-100">
-                            <Link
-                                href="/admin/blog/create"
-                                className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-3 hover:bg-black shadow-xl transition-all"
-                            >
-                                <FileText size={18} /> Quick Article
-                            </Link>
-                        </div>
-                    </div>
+                        </CardContent>
+                        <CardFooter className="pt-0 border-t border-slate-100 bg-slate-50/50 p-4 rounded-b-2xl">
+                            <Button asChild className="w-full rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-xs py-5" size="lg">
+                                <Link href="/admin/blog/create">
+                                    <FileText size={16} className="mr-2" /> Write Article
+                                </Link>
+                            </Button>
+                        </CardFooter>
+                    </Card>
                 </div>
             </div>
         </AdminLayout>

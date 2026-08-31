@@ -4,7 +4,7 @@ import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { Calendar, User, ArrowLeft, Clock } from 'lucide-react';
 import Navbar from '@/components/Navbar';
-import { api, getImageUrl } from '@/utils/api';
+import { supabase, getImageUrl } from '@/utils/supabase';
 
 export default function BlogDetail() {
     const router = useRouter();
@@ -25,12 +25,12 @@ export default function BlogDetail() {
     const fetchBlogDetail = async () => {
         setLoading(true);
         try {
-            const res = await api.get(`/blog/${id}`);
-            const data = res.data.data || res.data;
+            const { data, error } = await supabase.from('blogs').select('*').eq('id', id).single();
+            if (error) throw error;
             if (data) {
                 setBlog({
                     ...data,
-                    image_url: getImageUrl(data.image_url),
+                    image_url: getImageUrl(data.image_url || data.image),
                 });
             }
         } catch (err) {
@@ -43,11 +43,12 @@ export default function BlogDetail() {
 
     const fetchAllBlogs = async () => {
         try {
-            const res = await api.get(`/blog`);
-            const list = res.data.data || [];
+            const { data, error } = await supabase.from('blogs').select('*');
+            if (error) throw error;
+            const list = data || [];
             const formatted = list.map((b) => ({
                 ...b,
-                image_url: getImageUrl(b.image_url),
+                image_url: getImageUrl(b.image_url || b.image),
             }));
             setBlogs(formatted);
         } catch (err) {

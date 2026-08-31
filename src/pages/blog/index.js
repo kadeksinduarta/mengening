@@ -3,9 +3,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import BlogCard from '@/component/BlogCard';
 import Navbar from '@/components/Navbar';
-import { api, getImageUrl } from '@/utils/api';
+import { supabase, getImageUrl } from '@/utils/supabase';
 import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 
 export default function BlogPage() {
     const router = useRouter();
@@ -21,10 +23,11 @@ export default function BlogPage() {
     const fetchBlogs = async () => {
         setLoading(true);
         try {
-            const res = await api.get('/blog');
-            const blogsWithUrl = (res.data.data || []).map((blog) => ({
+            const { data, error } = await supabase.from('blogs').select('*');
+            if (error) throw error;
+            const blogsWithUrl = (data || []).map((blog) => ({
                 ...blog,
-                image_url: getImageUrl(blog.image_url),
+                image_url: getImageUrl(blog.image_url || blog.image), // Support both column names
             }));
             setBlogs(blogsWithUrl);
         } catch (err) {
@@ -78,13 +81,13 @@ export default function BlogPage() {
                             className="mt-8 flex justify-center"
                         >
                             <div className="relative w-full max-w-md">
-                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
-                                <input
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10" size={20} />
+                                <Input
                                     type="text"
                                     placeholder="Cari artikel..."
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
-                                    className="w-full pl-12 pr-6 py-4 rounded-full border-none shadow-xl text-slate-800 focus:ring-4 focus:ring-blue-500/30 outline-none transition-all placeholder:text-slate-400"
+                                    className="w-full pl-12 py-6 rounded-full shadow-xl text-slate-800 bg-white border-0 focus-visible:ring-4 focus-visible:ring-blue-500/30"
                                 />
                             </div>
                         </motion.div>
@@ -120,7 +123,19 @@ export default function BlogPage() {
                                     transition={{ duration: 0.3 }}
                                     className="hover:-translate-y-2 transition-transform duration-300"
                                 >
-                                    <BlogCard blog={blog} />
+                                    <Card className="overflow-hidden h-full cursor-pointer group shadow-md hover:shadow-xl transition-shadow" onClick={() => router.push(`/blog/${blog.id}`)  }>
+                                        {blog.image_url && (
+                                            <div className="overflow-hidden h-48">
+                                                <img src={blog.image_url} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                                            </div>
+                                        )}
+                                        <CardContent className="p-5">
+                                            <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-2">{blog.category || 'Artikel'}</p>
+                                            <h2 className="text-lg font-bold text-slate-900 leading-snug mb-2 line-clamp-2">{blog.title}</h2>
+                                            <p className="text-sm text-slate-500 line-clamp-3">{blog.excerpt || blog.content?.replace(/<[^>]*>/g, '').substring(0, 100)}</p>
+                                            <p className="text-xs text-slate-400 mt-3">{new Date(blog.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                        </CardContent>
+                                    </Card>
                                 </motion.div>
                             ))}
                         </motion.div>

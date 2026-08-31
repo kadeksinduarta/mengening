@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { apiAuth, getImageUrl } from '@/utils/api';
+import { supabase, getImageUrl } from '@/utils/supabase';
 import { motion } from 'framer-motion';
 import {
     ArrowLeft, Save, Image as ImageIcon,
@@ -40,16 +40,18 @@ export default function EditBlog() {
     const fetchBlog = async () => {
         try {
             setLoading(true);
-            const response = await apiAuth.get(`/dashboard/blog/${id}`);
-            const blog = response.data.data;
+            const { data, error } = await supabase.from('blogs').select('*').eq('id', id).single();
+            if (error) throw error;
+            const blog = data;
             setFormData({
                 title: blog.title,
                 content: blog.content,
                 image: null,
             });
-            if (blog.image) {
-                setCurrentImage(blog.image);
-                setImagePreview(getImageUrl(blog.image));
+            if (blog.image_url || blog.image) {
+                const img = blog.image_url || blog.image;
+                setCurrentImage(img);
+                setImagePreview(getImageUrl(img));
             }
         } catch (err) {
             console.error('Error fetching blog:', err);
@@ -80,13 +82,26 @@ export default function EditBlog() {
         setError('');
 
         try {
-            const form = new FormData();
-            form.append('_method', 'PUT'); // For Laravel multipart PUT
-            form.append('title', formData.title);
-            form.append('content', formData.content);
-            if (formData.image) form.append('image', formData.image);
+            let imageUrl = currentImage;
+            if (formData.image) {
+                const file = formData.image;
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                const filePath = `blogs/${fileName}`;
+                
+                const { error: uploadError } = await supabase.storage.from('images').upload(filePath, file);
+                if (uploadError) throw uploadError;
+                imageUrl = filePath;
+            }
 
-            await apiAuth.post(`/dashboard/blog/${id}`, form);
+            const { error: updateError } = await supabase.from('blogs').update({
+                title: formData.title,
+                content: formData.content,
+                image_url: imageUrl,
+                image: imageUrl
+            }).eq('id', id);
+
+            if (updateError) throw updateError;
             setSuccess(true);
             setTimeout(() => router.push('/admin/blog'), 2000);
         } catch (err) {
@@ -119,41 +134,42 @@ export default function EditBlog() {
     }
 
     return (
-        <AdminLayout title="Edit Artikel">
+        <AdminLayout title="Edit Article">
             <Head>
-                <title>Edit Artikel - Pura Admin</title>
+                <title>Edit Article - Pura Admin</title>
             </Head>
 
-            <div className="max-w-4xl mx-auto">
+            <div className="max-w-3xl mx-auto">
                 <button
                     onClick={() => router.back()}
-                    className="flex items-center gap-2 text-slate-400 hover:text-slate-900 font-black uppercase tracking-widest text-[10px] mb-8 transition-colors group"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-900 mb-6 transition-colors group"
                 >
-                    <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                    <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
                     Back to List
                 </button>
 
-                <form onSubmit={handleSubmit} className="space-y-10 pb-20">
+                <form onSubmit={handleSubmit} className="space-y-6 pb-12">
                     {error && (
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-rose-50 border border-rose-100 p-6 rounded-[2rem] flex items-center gap-4 text-rose-600 font-bold">
-                            <AlertCircle size={24} />
-                            {error}
+                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-red-50 border border-red-100 p-4 rounded-xl flex items-center gap-3 text-red-600 text-sm font-semibold">
+                            <AlertCircle size={18} className="shrink-0" />
+                            <span>{error}</span>
                         </motion.div>
                     )}
 
                     {success && (
-                        <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="bg-emerald-50 border border-emerald-100 p-6 rounded-[2rem] flex items-center gap-4 text-emerald-600 font-bold">
-                            <CheckCircle size={24} />
-                            Changes saved successfully! Redirecting...
+                        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="bg-emerald-50 border border-emerald-100 p-4 rounded-xl flex items-center gap-3 text-emerald-600 text-sm font-semibold">
+                            <CheckCircle size={18} className="shrink-0" />
+                            <span>Changes saved successfully! Redirecting...</span>
                         </motion.div>
                     )}
 
-                    <div className="bg-white rounded-[3rem] border border-slate-100 shadow-sm overflow-hidden">
-                        <div className="p-10 md:p-14 space-y-12">
+                    {/* Main Content Card */}
+                    <div className="bg-white rounded-xl border border-slate-200/80 shadow-sm overflow-hidden">
+                        <div className="p-6 md:p-8 space-y-6">
                             {/* Title Input */}
-                            <div className="space-y-4">
-                                <label className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-300 flex items-center gap-3">
-                                    <Type size={14} className="text-blue-500" /> Article Title
+                            <div className="space-y-2">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                                    <Type size={12} className="text-slate-400" /> Article Title
                                 </label>
                                 <input
                                     type="text"
@@ -161,32 +177,36 @@ export default function EditBlog() {
                                     value={formData.title}
                                     onChange={handleChange}
                                     placeholder="Article title..."
-                                    className="w-full text-3xl md:text-4xl font-black text-slate-900 placeholder:text-slate-100 focus:placeholder:text-slate-50 outline-none border-none bg-transparent transition-all"
+                                    className="w-full text-2xl md:text-3xl font-extrabold text-slate-800 placeholder:text-slate-300 focus:placeholder:text-slate-200 outline-none border-none bg-transparent transition-all"
                                     required
                                 />
                             </div>
 
                             {/* Image Upload */}
-                            <div className="space-y-6">
-                                <label className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-300 flex items-center gap-3">
-                                    <ImageIcon size={14} className="text-blue-500" /> Header Image
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                                    <ImageIcon size={12} className="text-slate-400" /> Cover Image
                                 </label>
 
                                 <div className="relative group">
                                     {imagePreview ? (
-                                        <div className="relative h-80 rounded-[2.5rem] overflow-hidden">
+                                        <div className="relative h-64 rounded-xl overflow-hidden bg-slate-50 border border-slate-200">
                                             <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
                                             <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center">
-                                                <label className="p-5 bg-white rounded-2xl text-blue-600 shadow-xl cursor-pointer hover:scale-110 active:scale-95 transition-all">
-                                                    <RefreshCw size={24} />
+                                                <label className="p-3 bg-white hover:bg-slate-50 text-slate-700 shadow-xl cursor-pointer hover:scale-105 active:scale-95 transition-all rounded-lg flex items-center gap-1.5 text-xs font-semibold">
+                                                    <RefreshCw size={14} />
+                                                    Change Cover
                                                     <input type="file" name="image" onChange={handleChange} className="hidden" accept="image/*" />
                                                 </label>
                                             </div>
                                         </div>
                                     ) : (
-                                        <label className="flex flex-col items-center justify-center h-80 border-4 border-dashed border-slate-50 rounded-[2.5rem] cursor-pointer hover:bg-slate-50 hover:border-blue-100 transition-all group">
-                                            <ImageIcon size={40} className="text-slate-200 mb-4 group-hover:scale-110 transition-transform" />
-                                            <p className="font-black text-slate-400 text-sm uppercase tracking-widest">Click to upload image</p>
+                                        <label className="flex flex-col items-center justify-center h-48 border border-dashed border-slate-300 hover:border-slate-400 bg-slate-50/50 hover:bg-slate-50 rounded-xl cursor-pointer transition-all group">
+                                            <div className="p-3 bg-white rounded-lg border border-slate-100 shadow-sm mb-2 group-hover:scale-105 transition-transform text-slate-400">
+                                                <ImageIcon size={24} />
+                                            </div>
+                                            <p className="font-semibold text-slate-500 text-xs">Click to upload cover image</p>
+                                            <p className="text-[10px] text-slate-400 mt-1">PNG, JPG, or WEBP up to 5MB</p>
                                             <input type="file" name="image" onChange={handleChange} className="hidden" accept="image/*" />
                                         </label>
                                     )}
@@ -194,49 +214,46 @@ export default function EditBlog() {
                             </div>
 
                             {/* Editor */}
-                            <div className="space-y-6">
-                                <label className="text-[11px] font-black uppercase tracking-[0.3em] text-slate-300 flex items-center gap-3">
-                                    <FileText size={14} className="text-blue-500" /> Article Content
+                            <div className="space-y-3">
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                                    <FileText size={12} className="text-slate-400" /> Article Content
                                 </label>
-                                <div className="prose-editor min-h-[400px]">
+                                <div className="prose-editor min-h-[350px]">
                                     <ReactQuill
                                         theme="snow"
                                         value={formData.content}
                                         onChange={handleContentChange}
                                         modules={quillModules}
-                                        className="h-[350px] mb-12"
+                                        className="h-[280px] mb-12"
                                     />
                                 </div>
                             </div>
                         </div>
 
                         {/* Actions Footer */}
-                        <div className="bg-slate-50 p-10 flex items-center justify-between border-t border-slate-100">
-                            <div className="flex items-center gap-2 text-slate-400">
-                                <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
-                                <span className="text-[10px] font-black uppercase tracking-widest">Article ID: {id}</span>
-                            </div>
-                            <div className="flex items-center gap-4">
+                        <div className="bg-slate-50/50 px-6 py-4 flex items-center justify-between border-t border-slate-100">
+                            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Article ID: {id}</span>
+                            <div className="flex items-center gap-2.5">
                                 <button
                                     type="button"
                                     onClick={() => router.back()}
-                                    className="px-8 py-4 text-slate-500 font-black uppercase tracking-widest text-[10px] hover:bg-white rounded-2xl transition-all"
+                                    className="px-4 py-2 text-slate-600 hover:text-slate-900 font-semibold text-xs rounded-xl hover:bg-slate-100 transition-colors"
                                 >
                                     Discard Changes
                                 </button>
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={submitting}
-                                    className="px-10 py-5 bg-blue-600 text-white font-black uppercase tracking-widest text-xs rounded-2xl shadow-xl shadow-blue-600/30 hover:bg-blue-700 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3 disabled:opacity-50"
+                                    className="px-4 bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs h-9 rounded-xl shadow-sm transition-all flex items-center gap-1.5 disabled:opacity-50"
                                 >
                                     {submitting ? (
-                                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                                     ) : (
                                         <>
-                                            <Save size={18} /> Update Article
+                                            <Save size={13} /> Save Changes
                                         </>
                                     )}
-                                </button>
+                                </Button>
                             </div>
                         </div>
                     </div>
@@ -245,24 +262,24 @@ export default function EditBlog() {
 
             <style jsx global>{`
         .prose-editor .ql-container {
-          border-bottom-left-radius: 2rem;
-          border-bottom-right-radius: 2rem;
-          border: 1px solid #F1F5F9 !important;
+          border-bottom-left-radius: 0.75rem;
+          border-bottom-right-radius: 0.75rem;
+          border: 1px solid #E2E8F0 !important;
           font-family: inherit;
         }
         .prose-editor .ql-toolbar {
-          border-top-left-radius: 2rem;
-          border-top-right-radius: 2rem;
-          border: 1px solid #F1F5F9 !important;
+          border-top-left-radius: 0.75rem;
+          border-top-right-radius: 0.75rem;
+          border: 1px solid #E2E8F0 !important;
           background: #F8FAFC;
-          padding: 1.5rem !important;
+          padding: 0.75rem !important;
         }
         .prose-editor .ql-editor {
-          min-height: 350px;
-          padding: 2.5rem !important;
-          font-size: 1.125rem;
-          line-height: 1.8;
-          color: #1E293B;
+          min-height: 280px;
+          padding: 1.25rem !important;
+          font-size: 0.95rem;
+          line-height: 1.6;
+          color: #334155;
         }
       `}</style>
         </AdminLayout>

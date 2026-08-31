@@ -1,9 +1,13 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
-import { api } from '@/utils/api';
+import { supabase } from '@/utils/supabase';
 import { motion } from 'framer-motion';
 import { Eye, EyeOff, Lock, User, AlertCircle, Globe } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
 
 export default function AdminLogin() {
     const router = useRouter();
@@ -34,124 +38,145 @@ export default function AdminLogin() {
         setError('');
 
         try {
-            const response = await api.post('/admin/login', formData);
-            const { token, admin } = response.data;
+            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+                email: formData.email,
+                password: formData.password,
+            });
 
-            sessionStorage.setItem('token', token);
-            sessionStorage.setItem('user', JSON.stringify(admin));
+            if (signInError) throw signInError;
+
+            sessionStorage.setItem('token', data.session.access_token);
+            sessionStorage.setItem('user', JSON.stringify(data.user));
 
             router.push('/admin');
         } catch (err) {
-            console.error('Login error:', err.response?.data);
-            setError(err.response?.data?.message || 'Login gagal. Periksa kembali email dan password Anda.');
+            console.error('Login error:', err.message);
+            setError(err.message || 'Login gagal. Periksa kembali email dan password Anda.');
         } finally {
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 font-sans">
+        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center p-4 font-sans relative overflow-hidden">
+            {/* Background decorative glows */}
+            <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
+            <div className="absolute bottom-0 -right-4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+
             <Head>
                 <title>Login Admin - Pura Mengening</title>
             </Head>
 
             <motion.div
-                initial={{ opacity: 0, y: 20 }}
+                initial={{ opacity: 0, y: 30 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-md"
+                transition={{ duration: 0.5, ease: "easeOut" }}
+                className="w-full max-w-md relative z-10"
             >
                 {/* Logo & Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-2xl shadow-xl shadow-blue-500/30 mb-4 transform rotate-6 hover:rotate-0 transition-transform duration-300">
-                        <Globe className="text-white" size={32} />
-                    </div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Pura Admin</h1>
-                    <p className="text-slate-500 mt-2">Silakan masuk untuk mengelola konten.</p>
+                    <motion.div 
+                        initial={{ scale: 0.8, rotate: -10 }}
+                        animate={{ scale: 1, rotate: 0 }}
+                        transition={{ type: "spring", stiffness: 100 }}
+                        className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl shadow-xl shadow-blue-500/20 mb-4"
+                    >
+                        <Globe className="text-white" size={26} />
+                    </motion.div>
+                    <h1 className="text-3xl font-extrabold text-white tracking-tight">Pura Admin</h1>
+                    <p className="text-slate-400 mt-2 text-sm">Masuk untuk mengelola konten dan jadwal Melukat.</p>
                 </div>
 
-                {/* Login Card */}
-                <div className="bg-white rounded-[2rem] shadow-2xl p-8 md:p-10 border border-slate-100">
-                    <form onSubmit={handleLogin} className="space-y-6">
-                        {error && (
-                            <motion.div
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                className="bg-red-50 text-red-600 p-4 rounded-xl flex items-center gap-3 text-sm font-medium"
-                            >
-                                <AlertCircle size={18} />
-                                {error}
-                            </motion.div>
-                        )}
-
-                        <div className="space-y-2">
-                            <label className="text-sm font-bold text-slate-700 ml-1">Email / Username</label>
-                            <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <User size={18} />
-                                </div>
-                                <input
-                                    type="text"
-                                    name="email"
-                                    value={formData.email}
-                                    onChange={handleChange}
-                                    className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:bg-white bg-slate-50 outline-none transition-all placeholder:text-slate-400"
-                                    placeholder="admin@example.com"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <div className="flex items-center justify-between ml-1">
-                                <label className="text-sm font-bold text-slate-700">Password</label>
-                                <button type="button" className="text-xs text-blue-600 font-semibold hover:underline">Lupa Password?</button>
-                            </div>
-                            <div className="relative">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-                                    <Lock size={18} />
-                                </div>
-                                <input
-                                    type={showPassword ? 'text' : 'password'}
-                                    name="password"
-                                    value={formData.password}
-                                    onChange={handleChange}
-                                    className="w-full pl-12 pr-12 py-4 rounded-2xl border-2 border-slate-100 focus:border-blue-500 focus:bg-white bg-slate-50 outline-none transition-all placeholder:text-slate-400"
-                                    placeholder="••••••••"
-                                    required
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                <Card className="rounded-3xl border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-2xl shadow-black/40">
+                    <CardHeader className="space-y-1.5 pb-6">
+                        <CardTitle className="text-xl text-white font-bold">Masuk ke Dashboard</CardTitle>
+                        <CardDescription className="text-slate-400">Gunakan kredensial admin Anda.</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <form onSubmit={handleLogin} className="space-y-5">
+                            {error && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl flex items-center gap-3 text-sm font-medium"
                                 >
-                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                </button>
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full bg-slate-900 hover:bg-black text-white font-bold py-4 rounded-2xl shadow-xl transition-all active:scale-[0.98] disabled:opacity-70 flex items-center justify-center gap-2 group"
-                        >
-                            {loading ? (
-                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                            ) : (
-                                <>
-                                    Masuk Sekarang
-                                    <motion.span
-                                        animate={{ x: [0, 4, 0] }}
-                                        transition={{ duration: 1.5, repeat: Infinity }}
-                                    >
-                                        →
-                                    </motion.span>
-                                </>
+                                    <AlertCircle size={18} className="shrink-0" />
+                                    <span>{error}</span>
+                                </motion.div>
                             )}
-                        </button>
-                    </form>
-                </div>
 
-                <p className="text-center text-slate-400 text-sm mt-8">
+                            <div className="space-y-2">
+                                <Label htmlFor="email" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Email / Username</Label>
+                                <div className="relative">
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                                        <User size={18} />
+                                    </div>
+                                    <Input
+                                        id="email"
+                                        type="text"
+                                        name="email"
+                                        value={formData.email}
+                                        onChange={handleChange}
+                                        className="pl-11 bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-600 focus-visible:ring-blue-600 focus-visible:border-blue-600 rounded-xl"
+                                        placeholder="admin@example.com"
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                    <Label htmlFor="password" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Password</Label>
+                                    <button type="button" className="text-xs text-blue-400 hover:text-blue-300 font-semibold hover:underline">Lupa Password?</button>
+                                </div>
+                                <div className="relative">
+                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
+                                        <Lock size={18} />
+                                    </div>
+                                    <Input
+                                        id="password"
+                                        type={showPassword ? 'text' : 'password'}
+                                        name="password"
+                                        value={formData.password}
+                                        onChange={handleChange}
+                                        className="pl-11 pr-12 bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-600 focus-visible:ring-blue-600 focus-visible:border-blue-600 rounded-xl"
+                                        placeholder="••••••••"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <Button
+                                type="submit"
+                                disabled={loading}
+                                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold h-11 rounded-xl transition-all shadow-lg shadow-blue-600/20"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                ) : (
+                                    <span className="flex items-center justify-center gap-2">
+                                        Masuk Sekarang
+                                        <motion.span
+                                            animate={{ x: [0, 4, 0] }}
+                                            transition={{ duration: 1.5, repeat: Infinity }}
+                                        >
+                                            →
+                                        </motion.span>
+                                    </span>
+                                )}
+                            </Button>
+                        </form>
+                    </CardContent>
+                </Card>
+
+                <p className="text-center text-slate-600 text-xs mt-8">
                     &copy; 2026 Pura Mengening. All rights reserved.
                 </p>
             </motion.div>

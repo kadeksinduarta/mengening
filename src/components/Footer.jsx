@@ -15,9 +15,8 @@ const Footer = () => {
       <div className="container mx-auto px-6 py-16">
         <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left mb-12">
           <div className="flex items-center gap-4 mb-6 md:mb-0">
-            <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 h-16 rounded-2xl shadow-2xl shadow-blue-500/20" />
+            <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 rounded-2xl shadow-2xl shadow-blue-500/20" />
             <div>
-              <p className="text-3xl font-playfair font-bold text-white mb-1">Tasya Melukat</p>
               <p className="text-slate-500 text-sm tracking-wide">{t("footer.location")}</p>
             </div>
           </div>
