@@ -86,7 +86,7 @@ export default function Navbar() {
                 </Button>
               </li>
 
-              {/* <li>
+              <li>
                 <Button
                   asChild
                   className={`rounded-full px-6 shadow-lg ${scrolled || isOpen
@@ -98,7 +98,7 @@ export default function Navbar() {
                     {t("nav.bookNow")}
                   </a>
                 </Button>
-              </li> */}
+              </li>
             </ul>
 
             {/* Mobile Menu Button & Language toggle */}
@@ -148,13 +148,13 @@ export default function Navbar() {
                     </a>
                   </li>
                 ))}
-                {/* <li className="pt-4">
+                <li className="pt-4">
                   <Button asChild className="w-full rounded-xl shadow-lg">
                     <a href="/booking" onClick={() => setIsOpen(false)}>
                       {t("nav.bookNow")}
                     </a>
                   </Button>
-                </li> */}
+                </li>
               </ul>
             </motion.div>
           )}
