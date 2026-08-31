@@ -13,22 +13,24 @@ const SEO = ({
     const router = useRouter();
     const { t } = useTranslation();
 
-    const siteName = 'Tasya Melukat - Pura Mengening';
+    const siteName = 'Tasya Melukat - Wisata Spiritual Pura Mengening Bali';
     const defaultTitle = t('seo.title');
     const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
     const defaultDescription = t('seo.description');
     const defaultKeywords = t('seo.keywords');
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://puramengening.com';
     const fullUrl = url ? `${siteUrl}${url}` : `${siteUrl}${router.asPath}`;
-    const ogImage = image || `${siteUrl}/Logo_Tasya.png`;
+    const logoUrl = `${siteUrl}/Logo_Tasya.png`;
+    const ogImage = image || logoUrl;
 
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "TouristAttraction",
-      "name": "Pura Mengening",
+      "name": "Pura Mengening Tampaksiring",
       "description": defaultDescription,
       "url": siteUrl,
-      "image": ogImage,
+      "image": logoUrl,
+      "logo": logoUrl,
       "address": {
         "@type": "PostalAddress",
         "addressLocality": "Tampaksiring",
@@ -38,8 +40,12 @@ const SEO = ({
       "provider": {
         "@type": "LocalBusiness",
         "name": "Tasya Melukat - Jasa Guide Pura Mengening",
-        "image": ogImage,
-        "priceRange": "$$"
+        "image": logoUrl,
+        "logo": logoUrl,
+        "url": siteUrl,
+        "priceRange": "$$",
+        "areaServed": "Bali, Indonesia",
+        "serviceType": "Wisata Spiritual Melukat"
       }
     };
 
@@ -49,9 +55,12 @@ const SEO = ({
             <meta name="description" content={description || defaultDescription} />
             <meta name="keywords" content={keywords || defaultKeywords} />
             <meta name="viewport" content="width=device-width, initial-scale=1" />
-            <link rel="icon" type="image/jpeg" href="/Logo_Tasya.png?v=2" />
-            <link rel="apple-touch-icon" href="/Logo_Tasya.png?v=2" />
-            <link rel="shortcut icon" href="/Logo_Tasya.png?v=2" />
+            <meta name="author" content="Tasya Melukat" />
+            <meta name="robots" content="index, follow" />
+            <meta name="theme-color" content="#38bdf8" />
+            <link rel="icon" type="image/png" href="/Logo_Tasya.png?v=3" />
+            <link rel="apple-touch-icon" sizes="180x180" href="/Logo_Tasya.png?v=3" />
+            <link rel="shortcut icon" href="/Logo_Tasya.png?v=3" />
 
             {/* Open Graph */}
             <meta property="og:title" content={fullTitle} />
@@ -60,6 +69,8 @@ const SEO = ({
             <meta property="og:url" content={fullUrl} />
             <meta property="og:type" content={type} />
             <meta property="og:site_name" content={siteName} />
+            <meta property="og:locale" content="id_ID" />
+            <meta property="og:locale:alternate" content="en_US" />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />

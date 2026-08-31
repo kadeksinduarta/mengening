@@ -50,7 +50,11 @@ export default function Navbar() {
               <img
                 src="/Logo_Tasya.png"
                 alt="Tasya Melukat"
-                className={`w-25 rounded-xl transition-all duration-300`}
+                className={`h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
+                  scrolled || isOpen
+                    ? "brightness-100"
+                    : "brightness-0 invert"
+                }`}
               />
             </a>
 
