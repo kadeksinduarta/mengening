@@ -8,6 +8,7 @@ import {
     ArrowLeft, Save, Image as ImageIcon,
     FileText, Type, Send, AlertCircle, CheckCircle
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import dynamic from 'next/dynamic';
 
 const ReactQuill = dynamic(() => import('react-quill-new'), { ssr: false });

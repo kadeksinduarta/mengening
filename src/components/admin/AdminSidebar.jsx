@@ -28,7 +28,7 @@ export default function AdminSidebar({ onClose }) {
                     onClick={onClose}
                 >
                     <div className="w-25 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                       <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-25 h-25 rounded-xl shadow-2xl shadow-blue-500/20" />``
+                       <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-25 rounded-xl" />
                     </div>
                 </Link>
             </div>
