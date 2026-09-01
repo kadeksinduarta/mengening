@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import Persyaratan from "@/components/Persyaratan";
 import FAQ from "@/components/FAQ";
 import WhatsappButton from "@/component/WhatsappButton";
+import Review from "@/components/Review";
 
 export default function HomePage() {
   return (
@@ -29,6 +30,7 @@ export default function HomePage() {
       <FAQ />
       <Gallery />
       <WhatsappButton />
+      <Review />
       <Contact />
       <Footer />
     </>

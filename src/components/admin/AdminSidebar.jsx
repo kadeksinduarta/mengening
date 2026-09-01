@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { LayoutDashboard, Users, FileText, Settings, ExternalLink, Globe } from 'lucide-react';
+import { LayoutDashboard, Users, FileText, Settings, ExternalLink, Globe, Star } from 'lucide-react';
 
 export default function AdminSidebar({ onClose }) {
     const router = useRouter();
@@ -9,6 +9,7 @@ export default function AdminSidebar({ onClose }) {
         { title: 'Overview', icon: LayoutDashboard, path: '/admin' },
         { title: 'Manage Bookings', icon: Users, path: '/admin/booking' },
         { title: 'Manage Blog', icon: FileText, path: '/admin/blog' },
+        { title: 'Manage Reviews', icon: Star, path: '/admin/review' },
     ];
 
     const isActive = (path) => {

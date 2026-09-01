@@ -1,6 +1,5 @@
 import React from "react";
 import { useTranslation } from "@/contexts/I18nContext";
-
 const Footer = () => {
   const { t } = useTranslation();
 
@@ -13,7 +12,7 @@ const Footer = () => {
   return (
     <footer className="bg-slate-900 text-slate-400 font-sans border-t border-slate-800">
       <div className="container mx-auto px-6 py-16">
-        <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left mb-12">
+                  <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left mb-12">
           <div className="flex items-center gap-4 mb-6 md:mb-0">
             <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 rounded-2xl shadow-2xl shadow-blue-500/20" />
             <div>

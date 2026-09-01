@@ -148,6 +148,23 @@
     "alt5": "Meditasi Khusyuk",
     "alt6": "Keasrian Alam"
   },
+  "review": {
+    "sectionTitle": "Testimoni",
+    "heading": "Kata Para Pengunjung",
+    "subtitle": "Cerita nyata dari mereka yang telah merasakan ritual Melukat di Pura Mengening.",
+    "formTitle": "Bagikan Pengalaman Anda",
+    "namePlaceholder": "Nama Anda",
+    "messagePlaceholder": "Ceritakan pengalaman Anda...",
+    "ratingLabel": "Penilaian Anda",
+    "submitBtn": "Kirim Ulasan",
+    "submittingBtn": "Mengirim...",
+    "successMsg": "Terima kasih! Ulasan Anda telah ditampilkan.",
+    "errorRequired": "Mohon isi nama, pesan, dan penilaian Anda.",
+    "errorSubmit": "Gagal mengirim ulasan. Silakan coba lagi.",
+    "errorLoad": "Gagal memuat ulasan. Coba muat ulang halaman.",
+    "emptyState": "Belum ada ulasan. Jadilah yang pertama berbagi pengalaman.",
+    "listHeading": "Testimoni"
+  },
   "contact": {
     "sectionTitle": "Hubungi Kami",
     "heading": "Lokasi & Kontak",

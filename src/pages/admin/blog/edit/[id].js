@@ -95,19 +95,22 @@ export default function EditBlog() {
                 imageUrl = filePath;
             }
 
-            const { error: updateError } = await supabase.from('blogs').update({
+            const { data, error: updateError } = await supabase.from('blogs').update({
                 title: formData.title,
                 content: formData.content,
                 image_url: imageUrl,
                 image: imageUrl
-            }).eq('id', id);
+            }).eq('id', id).select();
 
             if (updateError) throw updateError;
+            if (!data || data.length === 0) {
+                throw new Error('Perubahan tidak tersimpan. Anda mungkin tidak memiliki izin (RLS) untuk mengubah data ini.');
+            }
             setSuccess(true);
             setTimeout(() => router.push('/admin/blog'), 2000);
         } catch (err) {
             console.error('Error updating blog:', err);
-            setError('Gagal memperbarui artikel. Pastikan semua field terisi dengan benar.');
+            setError(err.message || 'Gagal memperbarui artikel. Pastikan semua field terisi dengan benar.');
         } finally {
             setSubmitting(false);
         }

@@ -35,12 +35,15 @@ export default function BlogManagement() {
     const handleDelete = async (id) => {
         if (confirm('Apakah Anda yakin ingin menghapus artikel ini?')) {
             try {
-                const { error } = await supabase.from('blogs').delete().eq('id', id);
+                const { data, error } = await supabase.from('blogs').delete().eq('id', id).select();
                 if (error) throw error;
+                if (!data || data.length === 0) {
+                    throw new Error('Artikel tidak terhapus. Anda mungkin tidak memiliki izin (RLS) untuk menghapus data ini.');
+                }
                 setBlogs(blogs.filter(b => b.id !== id));
             } catch (err) {
                 console.error('Error deleting blog:', err);
-                alert('Gagal menghapus artikel.');
+                alert(err.message || 'Gagal menghapus artikel.');
             }
         }
     };
