@@ -18,6 +18,7 @@ export default function BookingForm() {
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
     const [submitted, setSubmitted] = useState(false);
+    const [phoneError, setPhoneError] = useState('');
 
     const [formData, setFormData] = useState({
         name: '',
@@ -38,10 +39,22 @@ export default function BookingForm() {
         { number: 3, title: 'Konfirmasi', icon: CheckCircle },
     ];
 
+    const isValidPhone = (phone) => {
+        const digits = (phone || '').replace(/[^0-9]/g, '');
+        const national = digits.startsWith('62') ? digits.slice(2)
+            : digits.startsWith('0') ? digits.slice(1)
+            : digits;
+        return /^8[0-9]{9,12}$/.test(national);
+    };
+
     const handleChange = (e) => {
         const { name, value, files } = e.target;
         if (name === 'bukti_transfer') {
             setFormData({ ...formData, bukti_transfer: files[0] });
+        } else if (name === 'phone') {
+            const cleaned = value.replace(/[^0-9+]/g, '');
+            setFormData({ ...formData, phone: cleaned });
+            setPhoneError(cleaned && !isValidPhone(cleaned) ? 'Nomor WhatsApp tidak valid. Contoh: 081234567890' : '');
         } else {
             setFormData({ ...formData, [name]: value });
         }
@@ -49,7 +62,7 @@ export default function BookingForm() {
 
     const validateStep = (step) => {
         if (step === 1) {
-            return formData.name && formData.email && formData.phone;
+            return formData.name && formData.email && formData.phone && isValidPhone(formData.phone);
         }
         if (step === 2) {
             return formData.tanggal && formData.jam && formData.alamat;
@@ -61,6 +74,8 @@ export default function BookingForm() {
         if (validateStep(currentStep)) {
             setCurrentStep(currentStep + 1);
             setMessage('');
+        } else if (currentStep === 1 && formData.name && formData.email && formData.phone && !isValidPhone(formData.phone)) {
+            setMessage('Nomor WhatsApp tidak valid. Mohon periksa kembali (contoh: 081234567890).');
         } else {
             setMessage('Mohon lengkapi semua field yang wajib diisi.');
         }
@@ -137,7 +152,7 @@ export default function BookingForm() {
             // Redirect to WhatsApp after 2 seconds
             setTimeout(() => {
                 const whatsappMessage = createWhatsAppMessage();
-                const whatsappNumber = '6281234567890'; // GANTI DENGAN NOMOR WHATSAPP YANG BENAR
+                const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285857864840';
                 window.location.href = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
             }, 2000);
         } catch (error) {
@@ -313,18 +328,24 @@ export default function BookingForm() {
                                                 <div className="relative">
                                                     <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                                                     <Input
-                                                        type="text"
+                                                        type="tel"
+                                                        inputMode="numeric"
                                                         name="phone"
                                                         value={formData.phone}
                                                         onChange={handleChange}
                                                         className="pl-10"
-                                                        placeholder="0812xxxx"
+                                                        placeholder="081234567890"
+                                                        maxLength={15}
                                                         required
                                                     />
                                                 </div>
-                                                <p className="mt-2 text-xs text-slate-500">
-                                                    Nomor ini akan digunakan untuk konfirmasi booking via WhatsApp
-                                                </p>
+                                                {phoneError ? (
+                                                    <p className="mt-2 text-xs text-red-500">{phoneError}</p>
+                                                ) : (
+                                                    <p className="mt-2 text-xs text-slate-500">
+                                                        Nomor ini akan digunakan untuk konfirmasi booking via WhatsApp
+                                                    </p>
+                                                )}
                                             </div>
                                         </div>
                                     </motion.div>

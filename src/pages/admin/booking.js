@@ -16,6 +16,13 @@ import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
 
+const formatWhatsAppNumber = (phone) => {
+    const digits = (phone || '').replace(/[^0-9]/g, '');
+    if (digits.startsWith('0')) return `62${digits.slice(1)}`;
+    if (digits.startsWith('62')) return digits;
+    return `62${digits}`;
+};
+
 export default function BookingManagement() {
     const [loading, setLoading] = useState(true);
     const [bookings, setBookings] = useState([]);
@@ -157,7 +164,7 @@ export default function BookingManagement() {
                                                     <ExternalLink size={14} className="text-slate-500" />
                                                 </Button>
                                                 <Button variant="ghost" size="icon" asChild className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg">
-                                                    <a href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer">
+                                                    <a href={`https://wa.me/${formatWhatsAppNumber(b.phone)}`} target="_blank" rel="noreferrer">
                                                         <MessageCircle size={14} />
                                                     </a>
                                                 </Button>
@@ -224,7 +231,7 @@ export default function BookingManagement() {
                                     <div className="flex items-center gap-1.5">
                                         <Button variant="ghost" size="icon" onClick={() => openDetail(b)} className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 border border-slate-100"><ExternalLink size={14} /></Button>
                                         <Button variant="ghost" size="icon" asChild className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
-                                            <a href={`https://wa.me/${b.phone.replace(/[^0-9]/g, '')}`} target="_blank" rel="noreferrer"><MessageCircle size={14} /></a>
+                                            <a href={`https://wa.me/${formatWhatsAppNumber(b.phone)}`} target="_blank" rel="noreferrer"><MessageCircle size={14} /></a>
                                         </Button>
                                         <Button variant="ghost" size="icon" onClick={() => handleDelete(b.id)} className="w-8 h-8 rounded-lg bg-slate-50 text-red-500 border border-slate-100"><Trash2 size={14} /></Button>
                                     </div>
@@ -377,7 +384,7 @@ export default function BookingManagement() {
                                     className="w-full sm:w-auto px-5 bg-blue-600 hover:bg-blue-500 font-semibold text-xs rounded-xl flex items-center justify-center gap-2"
                                 >
                                     <a
-                                        href={`https://wa.me/${selectedBooking.phone.replace(/[^0-9]/g, '')}`}
+                                        href={`https://wa.me/${formatWhatsAppNumber(selectedBooking.phone)}`}
                                         target="_blank"
                                         rel="noreferrer"
                                     >
