@@ -16,9 +16,9 @@ export default function HomePage() {
   return (
     <>
       <SEO
-        title="Wisata Spiritual dan Budaya Bali"
-        description="Kunjungi Pura Mengening, destinasi wisata spiritual dan budaya di Bali. Nikmati keindahan alam, aktivitas spiritual, dan pengalaman budaya yang mendalam bersama Tasya Melukat."
-        keywords="Pura Mengening, wisata Bali, wisata spiritual, budaya Bali, temple Bali, Melukat Bali, Tasya Melukat"
+        title="Melukat di Pura Mengening Tampaksiring"
+        description="Pura Mengening adalah tempat melukat di Tampaksiring, Gianyar, Bali. Rasakan ritual penyucian diri di mata air suci bersama pemandu Tasya Melukat, lengkap dengan booking online."
+        keywords="Pura Mengening, melukat di Tampaksiring, melukat di Pura Mengening, wisata spiritual Bali, tempat melukat Bali, Tasya Melukat"
       />
 
       <Navbar />

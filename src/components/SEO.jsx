@@ -33,9 +33,25 @@ const SEO = ({
       "logo": logoUrl,
       "address": {
         "@type": "PostalAddress",
+        "streetAddress": "Jalan Tirta No.25M, Sareseda",
         "addressLocality": "Tampaksiring",
         "addressRegion": "Bali",
+        "postalCode": "80552",
         "addressCountry": "ID"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": -8.42002469161896,
+        "longitude": 115.309451875886
+      },
+      "telephone": "+6285857864840",
+      "openingHoursSpecification": {
+        "@type": "OpeningHoursSpecification",
+        "dayOfWeek": [
+          "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
+        ],
+        "opens": "08:00",
+        "closes": "17:00"
       },
       "provider": {
         "@type": "LocalBusiness",
@@ -43,7 +59,21 @@ const SEO = ({
         "image": logoUrl,
         "logo": logoUrl,
         "url": siteUrl,
+        "telephone": "+6285857864840",
         "priceRange": "$$",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "Jalan Tirta No.25M, Sareseda",
+          "addressLocality": "Tampaksiring",
+          "addressRegion": "Bali",
+          "postalCode": "80552",
+          "addressCountry": "ID"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": -8.42002469161896,
+          "longitude": 115.309451875886
+        },
         "areaServed": "Bali, Indonesia",
         "serviceType": "Wisata Spiritual Melukat"
       }

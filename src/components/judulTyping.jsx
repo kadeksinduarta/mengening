@@ -1,12 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useTranslation } from "@/contexts/I18nContext";
 
 function AnimatedText() {
   const { t } = useTranslation();
   const text = t("home.title") || "Temukan Kedamaian";
-  const [displayText, setDisplayText] = useState("");
+  // Start with the full title so the <h1> never renders empty for search
+  // engines/social crawlers; the typing animation only replays afterwards.
+  const [displayText, setDisplayText] = useState(text);
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
     let index = 0;
     const interval = setInterval(() => {
       setDisplayText(text.slice(0, index));
