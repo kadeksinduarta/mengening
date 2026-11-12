@@ -1,7 +1,7 @@
 import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { supabase } from '@/utils/supabase';
+import { supabase, PAYMENTS_BUCKET } from '@/utils/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, User, Mail, Phone, FileText,
@@ -12,6 +12,28 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
+// Pilihan jam dibatasi ke jam operasional (08:00-17:00, tiap 30 menit).
+// Input type="time" melaporkan nilai kosong selama menitnya belum diisi,
+// sehingga form terlihat sudah terisi padahal ditolak validasi.
+const TIME_SLOTS = Array.from({ length: 19 }, (_, i) => {
+    const minutes = 8 * 60 + i * 30;
+    return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
+});
+
+const FIELD_LABELS = {
+    name: 'Nama Lengkap',
+    email: 'Email',
+    phone: 'Nomor WhatsApp',
+    tanggal: 'Tanggal',
+    jam: 'Jam Perkiraan',
+    alamat: 'Alamat Asal',
+};
+
+const REQUIRED_BY_STEP = {
+    1: ['name', 'email', 'phone'],
+    2: ['tanggal', 'jam', 'alamat'],
+};
+
 export default function BookingForm() {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
@@ -19,6 +41,7 @@ export default function BookingForm() {
     const [message, setMessage] = useState('');
     const [submitted, setSubmitted] = useState(false);
     const [phoneError, setPhoneError] = useState('');
+    const [missingFields, setMissingFields] = useState([]);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -49,6 +72,9 @@ export default function BookingForm() {
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
+        // Field yang baru disentuh tidak lagi ditandai merah.
+        setMissingFields((prev) => prev.filter((field) => field !== name));
+
         if (name === 'bukti_transfer') {
             setFormData({ ...formData, bukti_transfer: files[0] });
         } else if (name === 'phone') {
@@ -60,28 +86,35 @@ export default function BookingForm() {
         }
     };
 
-    const validateStep = (step) => {
-        if (step === 1) {
-            return formData.name && formData.email && formData.phone && isValidPhone(formData.phone);
-        }
-        if (step === 2) {
-            return formData.tanggal && formData.jam && formData.alamat;
-        }
-        return true;
-    };
+    const getMissingFields = (step) =>
+        (REQUIRED_BY_STEP[step] || []).filter(
+            (field) => !String(formData[field] || '').trim()
+        );
 
     const nextStep = () => {
-        if (validateStep(currentStep)) {
-            setCurrentStep(currentStep + 1);
-            setMessage('');
-        } else if (currentStep === 1 && formData.name && formData.email && formData.phone && !isValidPhone(formData.phone)) {
-            setMessage('Nomor WhatsApp tidak valid. Mohon periksa kembali (contoh: 081234567890).');
-        } else {
-            setMessage('Mohon lengkapi semua field yang wajib diisi.');
+        const missing = getMissingFields(currentStep);
+
+        if (missing.length > 0) {
+            setMissingFields(missing);
+            setMessage(
+                `Mohon lengkapi ${missing.map((field) => FIELD_LABELS[field]).join(', ')}.`
+            );
+            return;
         }
+
+        if (currentStep === 1 && !isValidPhone(formData.phone)) {
+            setMissingFields(['phone']);
+            setMessage('Nomor WhatsApp tidak valid. Contoh: 081234567890.');
+            return;
+        }
+
+        setMissingFields([]);
+        setMessage('');
+        setCurrentStep(currentStep + 1);
     };
 
     const prevStep = () => {
+        setMissingFields([]);
         setCurrentStep(currentStep - 1);
         setMessage('');
     };
@@ -127,8 +160,10 @@ export default function BookingForm() {
                 const fileExt = file.name.split('.').pop();
                 const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
                 const filePath = `bukti_transfer/${fileName}`;
-                
-                const { error: uploadError } = await supabase.storage.from('images').upload(filePath, file);
+
+                const { error: uploadError } = await supabase.storage
+                    .from(PAYMENTS_BUCKET)
+                    .upload(filePath, file);
                 if (uploadError) throw uploadError;
                 buktiUrl = filePath;
             }
@@ -298,6 +333,7 @@ export default function BookingForm() {
                                                 <Input
                                                     type="text"
                                                     name="name"
+                                                    aria-invalid={missingFields.includes('name')}
                                                     value={formData.name}
                                                     onChange={handleChange}
                                                     placeholder="Masukkan nama lengkap"
@@ -313,6 +349,7 @@ export default function BookingForm() {
                                                     <Input
                                                         type="email"
                                                         name="email"
+                                                        aria-invalid={missingFields.includes('email')}
                                                         value={formData.email}
                                                         onChange={handleChange}
                                                         className="pl-10"
@@ -331,6 +368,7 @@ export default function BookingForm() {
                                                         type="tel"
                                                         inputMode="numeric"
                                                         name="phone"
+                                                        aria-invalid={missingFields.includes('phone')}
                                                         value={formData.phone}
                                                         onChange={handleChange}
                                                         className="pl-10"
@@ -375,6 +413,7 @@ export default function BookingForm() {
                                                     <Input
                                                         type="date"
                                                         name="tanggal"
+                                                        aria-invalid={missingFields.includes('tanggal')}
                                                         value={formData.tanggal}
                                                         onChange={handleChange}
                                                         required
@@ -385,15 +424,22 @@ export default function BookingForm() {
                                                         Jam Perkiraan <span className="text-red-500">*</span>
                                                     </Label>
                                                     <div className="relative">
-                                                        <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                                                        <Input
-                                                            type="time"
+                                                        <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                                        <select
                                                             name="jam"
                                                             value={formData.jam}
                                                             onChange={handleChange}
-                                                            className="pl-10"
+                                                            aria-invalid={missingFields.includes('jam')}
+                                                            className="h-8 w-full appearance-none rounded-lg border border-input bg-transparent pl-10 pr-3 py-1 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm"
                                                             required
-                                                        />
+                                                        >
+                                                            <option value="">Pilih jam kedatangan</option>
+                                                            {TIME_SLOTS.map((slot) => (
+                                                                <option key={slot} value={slot}>
+                                                                    {slot} WITA
+                                                                </option>
+                                                            ))}
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </div>
@@ -405,6 +451,7 @@ export default function BookingForm() {
                                                     <MapPin size={18} className="absolute left-3 top-3 text-slate-400" />
                                                     <Textarea
                                                         name="alamat"
+                                                        aria-invalid={missingFields.includes('alamat')}
                                                         className="pl-10 min-h-[100px]"
                                                         placeholder="Masukkan alamat lengkap atau kota asal..."
                                                         value={formData.alamat}

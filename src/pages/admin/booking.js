@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { supabase, getImageUrl } from '@/utils/supabase';
+import { supabase, getPaymentProofUrl } from '@/utils/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Filter, Trash2, ExternalLink,
@@ -29,10 +29,28 @@ export default function BookingManagement() {
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
+    // Disimpan bersama id booking-nya supaya signed URL milik booking sebelumnya
+    // tidak pernah sempat tampil di detail booking yang baru dibuka.
+    const [proof, setProof] = useState({ id: null, url: null });
 
     useEffect(() => {
         fetchBookings();
     }, []);
+
+    // Signed URL hanya berumur 60 detik, jadi dibuat ulang setiap detail booking dibuka.
+    useEffect(() => {
+        let cancelled = false;
+        const filePath = selectedBooking?.bukti_transfer;
+        if (!filePath) return;
+
+        getPaymentProofUrl(filePath).then((url) => {
+            if (!cancelled) setProof({ id: selectedBooking.id, url });
+        });
+
+        return () => { cancelled = true; };
+    }, [selectedBooking]);
+
+    const proofUrl = proof.id === selectedBooking?.id ? proof.url : null;
 
     const fetchBookings = async () => {
         try {
@@ -359,12 +377,18 @@ export default function BookingManagement() {
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Bukti Transfer</p>
                                         <div className="relative group max-w-xs border border-slate-200/80 rounded-xl overflow-hidden shadow-sm bg-slate-50">
-                                            <img
-                                                src={getImageUrl(selectedBooking.bukti_transfer)}
-                                                alt="Bukti Transfer"
-                                                className="w-full h-auto max-h-48 object-contain cursor-zoom-in group-hover:scale-[1.02] transition-transform duration-200"
-                                                onClick={() => window.open(getImageUrl(selectedBooking.bukti_transfer), '_blank')}
-                                            />
+                                            {proofUrl ? (
+                                                <img
+                                                    src={proofUrl}
+                                                    alt="Bukti Transfer"
+                                                    className="w-full h-auto max-h-48 object-contain cursor-zoom-in group-hover:scale-[1.02] transition-transform duration-200"
+                                                    onClick={() => window.open(proofUrl, '_blank')}
+                                                />
+                                            ) : (
+                                                <div className="h-24 flex items-center justify-center text-[11px] font-semibold text-slate-400">
+                                                    Memuat bukti transfer...
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}
