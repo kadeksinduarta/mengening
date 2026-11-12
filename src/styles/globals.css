@@ -2,6 +2,10 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
+/* Dipakai untuk isi artikel blog (kelas .prose di src/pages/blog/[id].js).
+   Tanpa plugin ini seluruh kelas prose-* tidak menghasilkan CSS apa pun. */
+@plugin "@tailwindcss/typography";
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
@@ -56,7 +60,8 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  /* Variabel diisi next/font di _app.js; Arial hanya jaring pengaman. */
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
 /* Custom Scrollbar */
@@ -80,6 +85,8 @@ body {
 @theme inline {
   --font-heading: var(--font-sans);
   --font-sans: var(--font-sans);
+  /* Tanpa baris ini kelas font-playfair (dipakai 16x) tidak menghasilkan apa pun. */
+  --font-playfair: var(--font-playfair-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);

@@ -1,6 +1,7 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useTranslation } from '@/contexts/I18nContext';
+import { SITE_URL } from '@/config/site';
 
 const SEO = ({
     title,
@@ -18,7 +19,7 @@ const SEO = ({
     const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
     const defaultDescription = t('seo.description');
     const defaultKeywords = t('seo.keywords');
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://puramengening.com';
+    const siteUrl = SITE_URL;
     const fullUrl = url ? `${siteUrl}${url}` : `${siteUrl}${router.asPath}`;
     const logoUrl = `${siteUrl}/Logo_Tasya.png`;
     const ogImage = image || logoUrl;

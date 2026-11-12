@@ -18,9 +18,9 @@
 | # | Milestone | Fokus | Tugas | Perlu deploy | Status |
 |---|-----------|-------|------:|--------------|--------|
 | M0 | Tutup kebocoran data | Supabase RLS & storage | 5 | Sebagian | 🟡 Berjalan (1/5) |
-| M1 | Kunci akses admin | Sesi & autentikasi | 3 | Ya | ⬜ Belum |
-| M2 | Fondasi SEO | Domain, sitemap, rendering | 3 | Ya | ⬜ Belum |
-| M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | ⬜ Belum |
+| M1 | Kunci akses admin | Sesi & autentikasi | 3 | Ya | 🟢 Kode selesai, perlu uji |
+| M2 | Fondasi SEO | Domain, sitemap, rendering | 3 | Ya | 🟡 2 selesai, domain pending |
+| M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟡 Berjalan (1/6) |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | ⬜ Belum |
 | M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | ⬜ Belum |
@@ -180,7 +180,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 **Tujuan:** sesi admin benar-benar berakhir saat logout, dan guard-nya bisa dipercaya.
 
-### - [ ] T-05 · Perbaiki logout dan guard sesi
+### - [x] T-05 · Perbaiki logout dan guard sesi
+
+> **Selesai 13 Nov 2026.** `handleLogout` kini memanggil `supabase.auth.signOut()`. Guard diganti dari pembacaan `sessionStorage` ke `supabase.auth.getSession()`, ditambah `onAuthStateChange` yang ikut melempar keluar saat token kedaluwarsa atau admin logout dari tab lain. Penyimpanan token ke `sessionStorage` di `login.js` dihapus — supabase-js sudah mengelola dan menyegarkan sesinya sendiri. `grep -rn sessionStorage src/` kini hanya menemukan komentar.
+> Efek samping baik: error `react-hooks/set-state-in-effect` di `AdminLayout.jsx` ikut hilang.
 
 **Temuan:** 03 (Kritis, terverifikasi)
 **Referensi:** `src/components/admin/AdminLayout.jsx:25-32`, `:37-41`, `src/pages/admin/login.js:23-28`, `:48-49`
@@ -197,7 +200,9 @@ Logout hanya menghapus `sessionStorage` dan tidak memanggil `supabase.auth.signO
 
 ---
 
-### - [ ] T-06 · Luruskan field login
+### - [x] T-06 · Luruskan field login
+
+> **Selesai 13 Nov 2026.** Label menjadi "Email" dan `type="email"`.
 
 **Temuan:** 19 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/admin/login.js:109-123`
@@ -210,7 +215,9 @@ Label berbunyi "Email / Username" dengan `type="text"`, padahal `signInWithPassw
 
 ---
 
-### - [ ] T-07 · Sambungkan atau sembunyikan kontrol mati di area admin
+### - [x] T-07 · Sambungkan atau sembunyikan kontrol mati di area admin
+
+> **Selesai 13 Nov 2026.** "Lupa Password?" tersambung ke `supabase.auth.resetPasswordForEmail()`, dengan pesan sukses hijau dan penolakan yang jelas bila email belum diisi. Tombol "Settings" yang `onClick={() => {}}` diganti label non-interaktif bertanda "Segera", sehingga tidak lagi terlihat bisa diklik.
 
 **Temuan:** 18 (Tinggi, terverifikasi) — bagian admin
 **Referensi:** `src/pages/admin/login.js:130`, `src/components/admin/AdminSidebar.jsx:77-87`
@@ -234,6 +241,10 @@ Label berbunyi "Email / Username" dengan `type="text"`, padahal `signInWithPassw
 
 ### - [ ] T-08 · Benahi domain canonical
 
+> **Progres 13 Nov 2026 — sisi kode selesai, keputusan domain belum.**
+> Dibuat `src/config/site.js` sebagai satu-satunya sumber kebenaran: `SEO.jsx` dan `sitemap.xml.js` mengimpor dari sana, dan `public/robots.txt` yang statis diganti `src/pages/robots.txt.js` yang dinamis sehingga baris `Sitemap:` ikut otomatis. Tidak ada lagi domain hardcoded di `src/`. `NEXT_PUBLIC_SITE_URL` kini wajib — aplikasi gagal keras bila kosong.
+> **⚠️ Masih memakai `https://puramengening.com` lewat `.env.local`, dan domain itu tetap NXDOMAIN.** Selama belum diganti ke domain yang hidup, canonical dan sitemap masih menunjuk alamat yang tidak ada. Set `NEXT_PUBLIC_SITE_URL` di environment hosting juga, kalau tidak build produksi gagal.
+
 **Temuan:** 07 (Tinggi, terverifikasi)
 **Referensi:** `src/components/SEO.jsx:21`, `src/pages/sitemap.xml.js:3`, `public/robots.txt:6`
 
@@ -249,7 +260,9 @@ Label berbunyi "Email / Username" dengan `type="text"`, padahal `signInWithPassw
 
 ---
 
-### - [ ] T-09 · Perbaiki sitemap yang kehilangan semua artikel
+### - [x] T-09 · Perbaiki sitemap yang kehilangan semua artikel
+
+> **Selesai 13 Nov 2026.** Query diganti `select('id, created_at')` dan `error` kini diperiksa eksplisit, bukan mengandalkan `try/catch` yang tidak pernah aktif. Diverifikasi: sitemap naik dari 3 URL (hanya statis) menjadi 8 — tiga halaman statis plus kelima artikel.
 
 **Temuan:** 06 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/sitemap.xml.js:42-50`
@@ -270,7 +283,11 @@ blogs = data || [];
 
 ---
 
-### - [ ] T-10 · Render blog di server
+### - [x] T-10 · Render blog di server
+
+> **Selesai 13 Nov 2026.** `/blog` memakai `getStaticProps`, `/blog/[id]` memakai `getStaticProps` + `getStaticPaths` dengan `fallback: 'blocking'`, keduanya `revalidate: 600`. Output build menandai keduanya ● SSG.
+> Diverifikasi di HTML mentah tanpa menjalankan JavaScript: `/blog` sudah memuat judul-judul artikel, dan `/blog/2` punya `og:title` berisi judul artikel yang benar serta canonical-nya.
+> **Ikut tertutup:** T-11 (sidebar tidak lagi menampilkan "Invalid Date" — kini `published_date || created_at`) dan T-14 (urutan `created_at` menurun, dan sidebar hanya mengambil 5 baris berisi kolom seperlunya alih-alih seluruh artikel lengkap dengan `content`). Keduanya tidak bisa dipisahkan dari pemindahan ke server: query-nya harus ditulis ulang, dan menulisnya tanpa perbaikan itu berarti sengaja memindahkan bug.
 
 **Temuan:** 08 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/blog/index.js:19-39`, `src/pages/blog/[id].js:17-57`
@@ -292,7 +309,9 @@ Kedua halaman ter-prerender statis sementara datanya diambil di `useEffect`. HTM
 
 ## M3 — Bug yang dilihat pengunjung
 
-### - [ ] T-11 · Hilangkan "Invalid Date" dan rapikan kolom blog
+### - [x] T-11 · Hilangkan "Invalid Date" dan rapikan kolom blog
+
+> **Selesai 13 Nov 2026** bersama T-10. Sidebar kini `published_date || created_at`; diverifikasi 0 kemunculan "Invalid Date" di HTML.
 
 **Temuan:** 09 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/blog/[id].js:182`, `:115`, `:119-125`, `src/pages/blog/index.js:133,135`
@@ -305,7 +324,9 @@ Tabel `blogs` hanya punya `id, title, content, image_url, image, created_at`. Te
 
 ---
 
-### - [ ] T-12 · Aktifkan styling isi artikel
+### - [x] T-12 · Aktifkan styling isi artikel
+
+> **Selesai 13 Nov 2026.** `@tailwindcss/typography` dipasang dan didaftarkan lewat `@plugin` di `globals.css` (sintaks Tailwind v4). Diverifikasi: bundel CSS kini memuat 279 baris aturan `prose`, sebelumnya nol.
 
 **Temuan:** 10 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/blog/[id].js:142`, `src/styles/globals.css`
@@ -325,7 +346,10 @@ lalu daftarkan di `src/styles/globals.css` (sintaks Tailwind v4):
 
 ---
 
-### - [ ] T-13 · Benahi pemuatan font
+### - [x] T-13 · Benahi pemuatan font
+
+> **Selesai 13 Nov 2026.** Inter dan Playfair Display dimuat lewat `next/font` di `_app.js` (variable font, karena situs memakai ketebalan dari `font-light` sampai `font-black`), variabelnya ditaruh di `:root` lewat styled-jsx sehingga tidak ada elemen pembungkus baru yang mengubah tata letak. Token `--font-playfair` didaftarkan di `@theme`, `<link>` Google Fonts di `Navbar.jsx` dihapus, dan `font-family: Arial` pada `body` diganti variabel Inter.
+> **Catatan:** `judulTyping.jsx` ikut diubah dari `style={{ fontFamily: "'Playfair Display'" }}` ke kelas `font-playfair` — next/font menyajikan font dengan nama family hasil generate, sehingga nama literal tidak lagi cocok dan judul akan jatuh ke serif bila dibiarkan.
 
 **Temuan:** 11 (Tinggi, terverifikasi)
 **Referensi:** `src/components/Navbar.jsx:32-35`, `src/styles/globals.css:59`, `:80-82`
@@ -341,7 +365,9 @@ lalu daftarkan di `src/styles/globals.css` (sintaks Tailwind v4):
 
 ---
 
-### - [ ] T-14 · Pastikan urutan artikel dan hentikan over-fetch
+### - [x] T-14 · Pastikan urutan artikel dan hentikan over-fetch
+
+> **Selesai 13 Nov 2026** bersama T-10. Daftar dan sidebar diurutkan `created_at` menurun; sidebar hanya mengambil 5 baris berisi `id, title, image_url, image, created_at`.
 
 **Temuan:** 15 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/blog/index.js:26`, `src/pages/blog/[id].js:46`
@@ -357,7 +383,10 @@ Keduanya memakai `select('*')` tanpa `order`, jadi urutan artikel bisa berubah-u
 
 ---
 
-### - [ ] T-15 · Satukan layout halaman publik
+### - [x] T-15 · Satukan layout halaman publik
+
+> **Selesai 13 Nov 2026.** Dibuat `src/components/PublicLayout.jsx` (Navbar + konten + WhatsappButton + Footer), dipasang di `/`, `/booking`, `/blog`, dan `/blog/[id]`. `src/components/Booking.jsx` yang sudah dikomentari dihapus. Diverifikasi keempat halaman kini punya `<nav>`, `<footer>`, dan tombol WhatsApp.
+> **Perubahan ikutan yang diperlukan:** Navbar mendapat prop `solid`. Default-nya transparan dengan teks putih — di atas latar terang `/booking` teks itu tidak terbaca, jadi halaman booking memakai `<PublicLayout solidNav>`. Padding atas `/booking` juga dinaikkan ke `pt-28` agar tidak tertutup navbar yang `fixed`.
 
 **Temuan:** 29 (Menengah, terverifikasi)
 **Referensi:** `src/pages/booking.js`, `src/pages/blog/[id].js`, `src/pages/index.js:6,28`, `src/components/Booking.jsx`
@@ -373,7 +402,9 @@ Keduanya memakai `select('*')` tanpa `order`, jadi urutan artikel bisa berubah-u
 
 ---
 
-### - [ ] T-16 · Ganti navigasi internal ke `next/link`
+### - [x] T-16 · Ganti navigasi internal ke `next/link`
+
+> **Selesai 13 Nov 2026.** Logo dan tombol "Book Now" di `Navbar.jsx` serta tombol booking di `home.jsx` memakai `next/link`. Tautan jangkar (`/#about`, `/#contact`) sengaja tetap `<a>`. Diverifikasi: `@next/next/no-html-link-for-pages` kini **0**.
 
 **Temuan:** 24 (Menengah, terverifikasi) — bagian navigasi
 **Referensi:** `src/components/home.jsx:51`, `src/components/Navbar.jsx:46,101,157`, `src/components/Booking.jsx:96`

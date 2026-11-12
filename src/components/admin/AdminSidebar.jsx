@@ -74,16 +74,13 @@ export default function AdminSidebar({ onClose }) {
                             </span>
                             <ExternalLink size={12} className="text-slate-400" />
                         </a>
-                        <button
-                            onClick={() => { }}
-                            className="flex items-center justify-between w-full text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium group"
-                        >
+                        <div className="flex items-center justify-between w-full text-xs text-slate-400 font-medium">
                             <span className="flex items-center gap-2">
-                                <Settings size={14} className="text-slate-400 group-hover:text-blue-500" />
+                                <Settings size={14} className="text-slate-300" />
                                 Settings
                             </span>
-                            <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-mono">v1.0</span>
-                        </button>
+                            <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-mono">Segera</span>
+                        </div>
                     </div>
                 </div>
                 <p className="text-center text-[10px] text-slate-400 mt-5 font-medium">

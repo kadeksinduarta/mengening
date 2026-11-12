@@ -1,6 +1,5 @@
 import { supabase } from '@/utils/supabase';
-
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://puramengening.com';
+import { SITE_URL } from '@/config/site';
 
 const STATIC_ROUTES = [
     { path: '', priority: '1.0', changefreq: 'weekly' },
@@ -41,11 +40,18 @@ export default function Sitemap() {
 
 export async function getServerSideProps({ res }) {
     let blogs = [];
-    try {
-        const { data } = await supabase.from('blogs').select('id, created_at, updated_at');
+
+    // supabase-js mengembalikan error, bukan melemparnya — tanpa pemeriksaan ini
+    // kegagalan query lewat tanpa jejak dan sitemap diam-diam kehilangan artikel.
+    const { data, error } = await supabase
+        .from('blogs')
+        .select('id, created_at')
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        console.error('Gagal memuat blogs untuk sitemap:', error.message, error.code);
+    } else {
         blogs = data || [];
-    } catch (err) {
-        console.error('Failed to fetch blogs for sitemap:', err);
     }
 
     const sitemap = generateSitemap(blogs);

@@ -1,43 +1,59 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import AdminSidebar from './AdminSidebar';
+import { supabase } from '@/utils/supabase';
 import { LogOut, User, Menu, X } from 'lucide-react';
 
 export default function AdminLayout({ children, title }) {
     const router = useRouter();
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
     const [adminName, setAdminName] = useState('Admin');
-    const [mounted, setMounted] = useState(false);
+    const [checkingSession, setCheckingSession] = useState(true);
 
     useEffect(() => {
-        setMounted(true);
         const handleResize = () => {
-            if (window.innerWidth >= 1024) {
-                setIsSidebarOpen(true);
-            } else {
-                setIsSidebarOpen(false);
-            }
+            setIsSidebarOpen(window.innerWidth >= 1024);
         };
 
         handleResize(); // Set initial state
         window.addEventListener('resize', handleResize);
-
-        const token = sessionStorage.getItem('token');
-        const user = JSON.parse(sessionStorage.getItem('user') || '{}');
-
-        if (!token) {
-            router.push('/admin/login');
-        } else if (user.name) {
-            setAdminName(user.name);
-        }
-
         return () => window.removeEventListener('resize', handleResize);
     }, []);
 
-    const handleLogout = () => {
-        sessionStorage.removeItem('token');
-        sessionStorage.removeItem('user');
-        router.push('/admin/login');
+    // Sesi diambil dari Supabase, bukan dari flag di sessionStorage: flag hanya
+    // menandakan "pernah login", sementara getSession() ikut memperhitungkan
+    // token yang sudah kedaluwarsa atau dicabut.
+    useEffect(() => {
+        let active = true;
+
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (!active) return;
+
+            if (!session) {
+                router.replace('/admin/login');
+                return;
+            }
+
+            setAdminName(
+                session.user.user_metadata?.full_name || session.user.email || 'Admin'
+            );
+            setCheckingSession(false);
+        });
+
+        // Ikut melempar keluar saat token kedaluwarsa atau admin logout dari tab lain.
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!session) router.replace('/admin/login');
+        });
+
+        return () => {
+            active = false;
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        router.replace('/admin/login');
     };
 
     const closeSidebarOnMobile = () => {
@@ -46,7 +62,9 @@ export default function AdminLayout({ children, title }) {
         }
     };
 
-    if (!mounted) {
+    // Jangan render dashboard sebelum sesi terbukti sah — mencegah data admin
+    // sempat terlihat sekejap oleh pengunjung yang sesinya sudah habis.
+    if (checkingSession) {
         return <div className="min-h-screen bg-[#F9FBFC] font-sans" />;
     }
 

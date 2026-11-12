@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Menu, X, Globe } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/contexts/I18nContext";
 import { Button } from "@/components/ui/button";
 
-export default function Navbar() {
+export default function Navbar({ solid = false }) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeSection, setActiveSection] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const { language, changeLanguage, t } = useTranslation();
+
+  // Halaman berlatar terang memaksa tampilan solid; kalau tidak, teks putih
+  // navbar transparan tidak terbaca sebelum pengguna menggulir.
+  const isSolid = solid || scrolled || isOpen;
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -29,13 +34,8 @@ export default function Navbar() {
 
   return (
     <>
-      <link
-        href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600&display=swap"
-        rel="stylesheet"
-      />
-
       <nav
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled || isOpen
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isSolid
           ? "bg-white/80 backdrop-blur-xl shadow-sm border-b border-gray-100 py-3"
           : "bg-transparent border-b border-white/10 py-5"
           }`}
@@ -43,7 +43,7 @@ export default function Navbar() {
         <div className="w-full max-w-7xl mx-auto px-6">
           <div className="flex justify-between items-center">
             {/* Logo */}
-            <a
+            <Link
               href="/"
               className="flex items-center gap-3 group"
             >
@@ -51,12 +51,12 @@ export default function Navbar() {
                 src="/Logo_Tasya.png"
                 alt="Tasya Melukat"
                 className={`h-10 w-auto object-contain transition-all duration-300 group-hover:scale-105 ${
-                  scrolled || isOpen
+                  isSolid
                     ? "brightness-100"
                     : "brightness-0 invert"
                 }`}
               />
-            </a>
+            </Link>
 
             {/* Desktop Menu */}
             <ul className="hidden md:flex md:items-center space-x-8">
@@ -65,7 +65,7 @@ export default function Navbar() {
                   <a
                     href={item.href}
                     onClick={() => setActiveSection(item.id)}
-                    className={`text-sm font-medium transition-colors duration-300 hover:text-blue-500 relative group ${scrolled || isOpen ? "text-slate-600" : "text-white/90 hover:text-white"
+                    className={`text-sm font-medium transition-colors duration-300 hover:text-blue-500 relative group ${isSolid ? "text-slate-600" : "text-white/90 hover:text-white"
                       }`}
                   >
                     {item.label}
@@ -77,10 +77,10 @@ export default function Navbar() {
               {/* Language Switcher */}
               <li>
                 <Button
-                  variant={scrolled || isOpen ? "outline" : "ghost"}
+                  variant={isSolid ? "outline" : "ghost"}
                   size="sm"
                   onClick={toggleLanguage}
-                  className={`flex items-center gap-1.5 rounded-full text-xs font-semibold uppercase tracking-wider ${scrolled || isOpen
+                  className={`flex items-center gap-1.5 rounded-full text-xs font-semibold uppercase tracking-wider ${isSolid
                     ? ""
                     : "text-white hover:bg-white/20 hover:text-white"
                     }`}
@@ -93,14 +93,14 @@ export default function Navbar() {
               <li>
                 <Button
                   asChild
-                  className={`rounded-full px-6 shadow-lg ${scrolled || isOpen
+                  className={`rounded-full px-6 shadow-lg ${isSolid
                       ? ""
                       : "bg-white text-slate-900 hover:bg-gray-100"
                     }`}
                 >
-                  <a href="/booking">
+                  <Link href="/booking">
                     {t("nav.bookNow")}
-                  </a>
+                  </Link>
                 </Button>
               </li>
             </ul>
@@ -108,10 +108,10 @@ export default function Navbar() {
             {/* Mobile Menu Button & Language toggle */}
             <div className="flex items-center gap-4 md:hidden">
               <Button
-                variant={scrolled || isOpen ? "outline" : "ghost"}
+                variant={isSolid ? "outline" : "ghost"}
                 size="sm"
                 onClick={toggleLanguage}
-                className={`flex items-center gap-1 rounded-full text-xs font-semibold uppercase tracking-wider ${scrolled || isOpen
+                className={`flex items-center gap-1 rounded-full text-xs font-semibold uppercase tracking-wider ${isSolid
                   ? ""
                   : "text-white bg-white/10 hover:bg-white/20 hover:text-white"
                   }`}
@@ -121,7 +121,7 @@ export default function Navbar() {
               </Button>
 
               <button
-                className={`focus:outline-none transition-colors duration-300 ${scrolled || isOpen ? "text-slate-800" : "text-white"
+                className={`focus:outline-none transition-colors duration-300 ${isSolid ? "text-slate-800" : "text-white"
                   }`}
                 onClick={() => setIsOpen(!isOpen)}
               >
@@ -154,9 +154,9 @@ export default function Navbar() {
                 ))}
                 <li className="pt-4">
                   <Button asChild className="w-full rounded-xl shadow-lg">
-                    <a href="/booking" onClick={() => setIsOpen(false)}>
+                    <Link href="/booking" onClick={() => setIsOpen(false)}>
                       {t("nav.bookNow")}
-                    </a>
+                    </Link>
                   </Button>
                 </li>
               </ul>

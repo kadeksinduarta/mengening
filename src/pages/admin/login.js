@@ -13,6 +13,7 @@ export default function AdminLogin() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+    const [info, setInfo] = useState('');
     const [showPassword, setShowPassword] = useState(false);
 
     const [formData, setFormData] = useState({
@@ -21,10 +22,14 @@ export default function AdminLogin() {
     });
 
     useEffect(() => {
-        // Redirect if already logged in
-        if (sessionStorage.getItem('token')) {
-            router.push('/admin');
-        }
+        let active = true;
+
+        // Sesi Supabase adalah sumber kebenarannya, bukan flag di sessionStorage.
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (active && session) router.replace('/admin');
+        });
+
+        return () => { active = false; };
     }, []);
 
     const handleChange = (e) => {
@@ -36,25 +41,47 @@ export default function AdminLogin() {
         e.preventDefault();
         setLoading(true);
         setError('');
+        setInfo('');
 
         try {
-            const { data, error: signInError } = await supabase.auth.signInWithPassword({
+            const { error: signInError } = await supabase.auth.signInWithPassword({
                 email: formData.email,
                 password: formData.password,
             });
 
             if (signInError) throw signInError;
 
-            sessionStorage.setItem('token', data.session.access_token);
-            sessionStorage.setItem('user', JSON.stringify(data.user));
-
-            router.push('/admin');
+            // supabase-js menyimpan dan menyegarkan sesinya sendiri; menyalinnya
+            // ke sessionStorage hanya menciptakan sumber kebenaran kedua yang
+            // bisa bertahan setelah sesi aslinya habis.
+            router.replace('/admin');
         } catch (err) {
             console.error('Login error:', err.message);
             setError(err.message || 'Login gagal. Periksa kembali email dan password Anda.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleResetPassword = async () => {
+        setError('');
+        setInfo('');
+
+        if (!formData.email.trim()) {
+            setError('Isi dulu email Anda, lalu klik "Lupa Password?" lagi.');
+            return;
+        }
+
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+            formData.email.trim()
+        );
+
+        if (resetError) {
+            setError(resetError.message);
+            return;
+        }
+
+        setInfo('Tautan pengaturan ulang password sudah dikirim. Periksa kotak masuk email Anda.');
     };
 
     return (
@@ -105,15 +132,26 @@ export default function AdminLogin() {
                                 </motion.div>
                             )}
 
+                            {info && (
+                                <motion.div
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl flex items-center gap-3 text-sm font-medium"
+                                >
+                                    <AlertCircle size={18} className="shrink-0" />
+                                    <span>{info}</span>
+                                </motion.div>
+                            )}
+
                             <div className="space-y-2">
-                                <Label htmlFor="email" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Email / Username</Label>
+                                <Label htmlFor="email" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Email</Label>
                                 <div className="relative">
                                     <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
                                         <User size={18} />
                                     </div>
                                     <Input
                                         id="email"
-                                        type="text"
+                                        type="email"
                                         name="email"
                                         value={formData.email}
                                         onChange={handleChange}
@@ -127,7 +165,13 @@ export default function AdminLogin() {
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Password</Label>
-                                    <button type="button" className="text-xs text-blue-400 hover:text-blue-300 font-semibold hover:underline">Lupa Password?</button>
+                                    <button
+                                        type="button"
+                                        onClick={handleResetPassword}
+                                        className="text-xs text-blue-400 hover:text-blue-300 font-semibold hover:underline"
+                                    >
+                                        Lupa Password?
+                                    </button>
                                 </div>
                                 <div className="relative">
                                     <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">

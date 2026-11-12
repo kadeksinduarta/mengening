@@ -1,79 +1,63 @@
 import SEO from '@/components/SEO';
-import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import { Calendar, User, ArrowLeft, Clock } from 'lucide-react';
-import Navbar from '@/components/Navbar';
+import PublicLayout from '@/components/PublicLayout';
 import { supabase, getImageUrl } from '@/utils/supabase';
 
-export default function BlogDetail() {
+export async function getStaticPaths() {
+    const { data, error } = await supabase.from('blogs').select('id');
+
+    if (error) {
+        console.error('Gagal memuat daftar id blog:', error.message, error.code);
+    }
+
+    return {
+        paths: (data || []).map((blog) => ({ params: { id: String(blog.id) } })),
+        // Artikel yang dibuat setelah build tetap bisa dibuka tanpa rebuild.
+        fallback: 'blocking',
+    };
+}
+
+export async function getStaticProps({ params }) {
+    const { data, error } = await supabase
+        .from('blogs')
+        .select('*')
+        .eq('id', params.id)
+        .single();
+
+    if (error || !data) {
+        if (error) console.error('Gagal memuat artikel:', error.message, error.code);
+        return { notFound: true };
+    }
+
+    const blog = {
+        ...data,
+        image_url: getImageUrl(data.image_url || data.image),
+    };
+
+    // Sidebar hanya butuh judul dan gambar. Mengambil seluruh artikel lengkap
+    // dengan kolom content akan ikut terkirim ke HTML halaman ini.
+    const { data: others } = await supabase
+        .from('blogs')
+        .select('id, title, image_url, image, created_at')
+        .neq('id', params.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+    const blogs = (others || []).map((b) => ({
+        ...b,
+        image_url: getImageUrl(b.image_url || b.image),
+    }));
+
+    return {
+        props: { blog, blogs },
+        revalidate: 600,
+    };
+}
+
+export default function BlogDetail({ blog, blogs }) {
     const router = useRouter();
-    const { id } = router.query;
-    const [blog, setBlog] = useState(null);
-    const [blogs, setBlogs] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [message, setMessage] = useState('');
-
-    useEffect(() => {
-        if (id) {
-            window.scrollTo(0, 0);
-            fetchBlogDetail();
-            fetchAllBlogs();
-        }
-    }, [id]);
-
-    const fetchBlogDetail = async () => {
-        setLoading(true);
-        try {
-            const { data, error } = await supabase.from('blogs').select('*').eq('id', id).single();
-            if (error) throw error;
-            if (data) {
-                setBlog({
-                    ...data,
-                    image_url: getImageUrl(data.image_url || data.image),
-                });
-            }
-        } catch (err) {
-            console.error('Fetch error:', err);
-            setMessage('Gagal memuat data blog');
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const fetchAllBlogs = async () => {
-        try {
-            const { data, error } = await supabase.from('blogs').select('*');
-            if (error) throw error;
-            const list = data || [];
-            const formatted = list.map((b) => ({
-                ...b,
-                image_url: getImageUrl(b.image_url || b.image),
-            }));
-            setBlogs(formatted);
-        } catch (err) {
-            console.error(err);
-        }
-    };
-
-    if (loading) {
-        return (
-            <div className="min-h-screen bg-white flex justify-center items-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            </div>
-        );
-    }
-
-    if (!blog) {
-        return (
-            <div className="min-h-screen flex flex-col justify-center items-center bg-slate-50">
-                <h2 className="text-2xl font-bold text-slate-800">Artikel tidak ditemukan</h2>
-                <button onClick={() => router.push('/blog')} className="mt-4 text-blue-600 hover:underline">
-                    Kembali ke Daftar Artikel
-                </button>
-            </div>
-        );
-    }
 
     return (
         <>
@@ -85,8 +69,8 @@ export default function BlogDetail() {
                 type="article"
             />
 
+            <PublicLayout>
             <div className="min-h-screen bg-slate-50 font-sans">
-                <Navbar />
 
                 {/* Hero Header */}
                 <div className="bg-slate-900 text-white min-h-[40vh] relative flex items-end">
@@ -160,10 +144,7 @@ export default function BlogDetail() {
                                     Artikel Lainnya
                                 </h3>
                                 <div className="space-y-6">
-                                    {blogs
-                                        .filter((b) => b.id !== blog.id)
-                                        .slice(0, 5)
-                                        .map((item) => (
+                                    {blogs.map((item) => (
                                             <button
                                                 key={item.id}
                                                 onClick={() => router.push(`/blog/${item.id}`)}
@@ -179,7 +160,7 @@ export default function BlogDetail() {
                                                         {item.title}
                                                     </h4>
                                                     <span className="text-xs text-slate-500 mt-2 block">
-                                                        {new Date(item.published_date).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        {new Date(item.published_date || item.created_at).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </span>
                                                 </div>
                                             </button>
@@ -198,6 +179,7 @@ export default function BlogDetail() {
                     </div>
                 </div>
             </div>
+            </PublicLayout>
         </>
     );
 }

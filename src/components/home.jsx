@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Link from "next/link";
 import AnimatedText from "./judulTyping.jsx";
 import { useTranslation } from "@/contexts/I18nContext";
 
@@ -48,7 +49,7 @@ export default function Home() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.8, duration: 0.6 }}
         >
-          <a
+          <Link
             href="/booking"
             className="group px-10 py-5 bg-white text-slate-900 rounded-full font-bold text-lg hover:bg-blue-50 transition-all duration-300 shadow-2xl shadow-white/20 hover:shadow-white/30 hover:scale-105 active:scale-100"
           >
@@ -58,7 +59,7 @@ export default function Home() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
               </svg>
             </span>
-          </a>
+          </Link>
           <a
             href="#about"
             className="px-10 py-5 bg-transparent border-2 border-white/40 text-white rounded-full font-semibold text-lg hover:bg-white/20 hover:border-white/60 transition-all duration-300 backdrop-blur-sm hover:scale-105 active:scale-100"

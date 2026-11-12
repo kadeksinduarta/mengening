@@ -1,4 +1,5 @@
 import SEO from '@/components/SEO';
+import PublicLayout from '@/components/PublicLayout';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
 import { supabase, PAYMENTS_BUCKET } from '@/utils/supabase';
@@ -202,7 +203,8 @@ export default function BookingForm() {
         return (
             <>
                 <SEO title="Booking Berhasil" />
-                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-50 px-4">
+                <PublicLayout solidNav>
+                <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-50 px-4 pt-24">
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -234,6 +236,7 @@ export default function BookingForm() {
                         </button>
                     </motion.div>
                 </div>
+                </PublicLayout>
             </>
         );
     }
@@ -246,7 +249,8 @@ export default function BookingForm() {
                 keywords="booking Pura Mengening, reservasi Melukat, booking wisata Bali, Tasya Melukat"
             />
 
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+            <PublicLayout solidNav>
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-slate-50 pt-28 pb-12 px-4 sm:px-6 lg:px-8 font-sans">
                 <div className="max-w-4xl mx-auto">
                     <button
                         onClick={() => router.push('/')}
@@ -672,6 +676,7 @@ export default function BookingForm() {
                     </div>
                 </div>
             </div>
+            </PublicLayout>
         </>
     );
 }

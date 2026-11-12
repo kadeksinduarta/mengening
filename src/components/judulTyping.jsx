@@ -24,7 +24,7 @@ function AnimatedText() {
   }, [text]); // re-run animation when language changes
 
   return (
-    <h1 className="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+    <h1 className="text-5xl md:text-7xl font-extrabold text-white drop-shadow-lg font-playfair">
       {displayText}
       <span className="animate-pulse text-blue-400">|</span>
     </h1>
