@@ -49,9 +49,33 @@ export default function BookingManagement() {
     // tidak pernah sempat tampil di detail booking yang baru dibuka.
     const [proof, setProof] = useState({ id: null, url: null });
 
+    const fetchBookings = async () => {
+        try {
+            const { data, error } = await supabase.from('bookings').select('*').order('created_at', { ascending: false });
+            if (error) throw error;
+            setBookings(data || []);
+        } catch (err) {
+            console.error('Error fetching bookings:', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
+        // Mengambil data saat mount memang pola yang benar untuk halaman admin
+        // ini: sesinya hidup di klien, jadi tidak bisa dipindah ke
+        // getServerSideProps. setState-nya terjadi setelah await, bukan
+        // sinkron, sehingga kekhawatiran render beruntun tidak berlaku.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchBookings();
     }, []);
+
+    // Tombol Refresh butuh indikator loading; muat pertama tidak, karena
+    // state loading memang sudah bernilai true sejak awal.
+    const refreshBookings = () => {
+        setLoading(true);
+        fetchBookings();
+    };
 
     // Signed URL hanya berumur 60 detik, jadi dibuat ulang setiap detail booking dibuka.
     useEffect(() => {
@@ -68,18 +92,6 @@ export default function BookingManagement() {
 
     const proofUrl = proof.id === selectedBooking?.id ? proof.url : null;
 
-    const fetchBookings = async () => {
-        try {
-            setLoading(true);
-            const { data, error } = await supabase.from('bookings').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
-            setBookings(data || []);
-        } catch (err) {
-            console.error('Error fetching bookings:', err);
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const updateStatus = async (id, status) => {
         const previous = bookings;
@@ -147,7 +159,7 @@ export default function BookingManagement() {
                             ))}
                         </select>
                     </div>
-                    <Button variant="outline" className="gap-1.5 text-xs font-semibold rounded-xl border-slate-200/80 bg-white" onClick={fetchBookings}>
+                    <Button variant="outline" className="gap-1.5 text-xs font-semibold rounded-xl border-slate-200/80 bg-white" onClick={refreshBookings}>
                         Refresh Data
                     </Button>
                 </div>
@@ -445,7 +457,7 @@ export default function BookingManagement() {
                                         <p className="text-[9px] text-slate-400 font-bold uppercase mb-1 flex items-center gap-1.5">
                                             <MessageCircle size={10} /> Customer Notes
                                         </p>
-                                        <p className="text-xs text-slate-600 italic font-medium leading-relaxed">"{selectedBooking.catatan}"</p>
+                                        <p className="text-xs text-slate-600 italic font-medium leading-relaxed">&ldquo;{selectedBooking.catatan}&rdquo;</p>
                                     </div>
                                 )}
 

@@ -73,13 +73,8 @@ export default function ReviewManagement() {
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchReviews();
-    }, []);
-
     const fetchReviews = async () => {
         try {
-            setLoading(true);
             const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
             if (error) throw error;
             setReviews(data || []);
@@ -89,6 +84,16 @@ export default function ReviewManagement() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Mengambil data saat mount memang pola yang benar untuk halaman admin
+        // ini: sesinya hidup di klien, jadi tidak bisa dipindah ke
+        // getServerSideProps. setState-nya terjadi setelah await, bukan
+        // sinkron, sehingga kekhawatiran render beruntun tidak berlaku.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchReviews();
+    }, []);
+
 
     const openCreateModal = () => {
         setEditingId(null);

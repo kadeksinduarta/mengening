@@ -23,7 +23,7 @@
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | 🟡 2 selesai, T-24 tersisa |
-| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (3/7) |
+| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (4/7) |
 
 ---
 
@@ -709,7 +709,23 @@ Halaman kontak menampilkan `info@mengening.com` — domain yang berbeda dari `pu
 
 ---
 
-### - [ ] T-28 · Tuntaskan sisa error ESLint dan jalankan lint di CI
+### - [x] T-28 · Tuntaskan sisa error ESLint dan jalankan lint di CI
+
+> **Selesai 13 Nov 2026. Error ESLint: 24 → 0.** Tersisa 15 warning (10 `no-img-element` pada gambar remote, 4 `exhaustive-deps`, 1 lainnya).
+>
+> **`react-hooks/immutability` (5)** — benar-benar diperbaiki: deklarasi fungsi fetch dipindahkan ke atas `useEffect` yang memanggilnya.
+>
+> **`react/no-unescaped-entities` (4)** — dua diperbaiki jadi `&ldquo;`/`&rdquo;`, dua hilang bersama `BlogCard.jsx` di T-27.
+>
+> **`react-hooks/set-state-in-effect` (5)** — ditandai `eslint-disable-next-line` dengan alasan tertulis, bukan diperbaiki. Pola fetch-saat-mount memang benar untuk halaman admin ini: sesinya hidup di klien sehingga tidak bisa dipindah ke `getServerSideProps`, dan setState-nya terjadi setelah `await`.
+>
+> **Satu perbaikan nyata ikut ditemukan:** `setLoading(true)` di awal tiap fungsi fetch ternyata mubazir — `loading` sudah `useState(true)`. Dihapus, dan tombol Refresh di halaman booking mendapat `refreshBookings()` tersendiri yang menyalakan indikatornya.
+>
+> **Satu jalan pintas yang sengaja TIDAK diambil:** membungkus panggilan jadi `void (async () => { await fetchBlogs(); })()` juga membuat rule-nya lolos, dan sudah saya uji berhasil. Tapi `fetchBlogs()` memang sudah mengembalikan promise, jadi pembungkus itu tidak mengubah apa pun saat runtime — hanya memuaskan linter secara sintaksis sambil menyembunyikan keputusannya dari pembaca berikutnya. Disable yang terdokumentasi lebih jujur.
+>
+> **CI:** `.github/workflows/ci.yml` menjalankan `eslint src` lalu `next build` pada setiap push ke `main` dan setiap pull request. Script `lint` di `package.json` diperbaiki dari `eslint` (tanpa target) menjadi `eslint src`.
+>
+> **⚠️ Perlu Anda lakukan:** tambahkan tiga repository secret di GitHub → Settings → Secrets and variables → Actions, yaitu `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, dan `NEXT_PUBLIC_SITE_URL`. Tanpa itu langkah Build di CI akan gagal — disengaja, karena ketiganya memang wajib.
 
 **Temuan:** 24 (Menengah, terverifikasi) — sisanya setelah T-16
 **Referensi:** keluaran `npx eslint src`

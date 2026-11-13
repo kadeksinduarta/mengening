@@ -15,13 +15,8 @@ export default function BlogManagement() {
     const [blogs, setBlogs] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
 
-    useEffect(() => {
-        fetchBlogs();
-    }, []);
-
     const fetchBlogs = async () => {
         try {
-            setLoading(true);
             const { data, error } = await supabase.from('blogs').select('*').order('created_at', { ascending: false });
             if (error) throw error;
             setBlogs(data || []);
@@ -31,6 +26,16 @@ export default function BlogManagement() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Mengambil data saat mount memang pola yang benar untuk halaman admin
+        // ini: sesinya hidup di klien, jadi tidak bisa dipindah ke
+        // getServerSideProps. setState-nya terjadi setelah await, bukan
+        // sinkron, sehingga kekhawatiran render beruntun tidak berlaku.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        fetchBlogs();
+    }, []);
+
 
     const handleDelete = async (id) => {
         if (confirm('Apakah Anda yakin ingin menghapus artikel ini?')) {

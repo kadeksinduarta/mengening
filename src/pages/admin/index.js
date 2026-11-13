@@ -18,11 +18,6 @@ export default function AdminDashboard() {
         recent_bookings: []
     });
 
-    useEffect(() => {
-        setCurrentTime(new Date().toLocaleTimeString('id-ID'));
-        fetchStats();
-    }, []);
-
     const fetchStats = async () => {
         try {
             setLoading(true);
@@ -43,6 +38,15 @@ export default function AdminDashboard() {
             setLoading(false);
         }
     };
+
+    useEffect(() => {
+        // Jam lokal hanya ada di browser. Dibaca setelah mount, bukan saat
+        // render, supaya HTML server dan klien tidak berbeda.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setCurrentTime(new Date().toLocaleTimeString('id-ID'));
+        fetchStats();
+    }, []);
+
 
     const stats = [
         { title: 'Total Bookings', value: data.bookings_count, icon: Users, color: 'text-emerald-500', bgColor: 'bg-emerald-500' },

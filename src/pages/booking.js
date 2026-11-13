@@ -719,7 +719,7 @@ export default function BookingForm() {
                                                 <ol className="space-y-2 text-sm text-blue-800">
                                                     <li className="flex items-start gap-2">
                                                         <span className="font-bold">1.</span>
-                                                        <span>Klik tombol "Konfirmasi Booking" di bawah</span>
+                                                        <span>Klik tombol &ldquo;Konfirmasi Booking&rdquo; di bawah</span>
                                                     </li>
                                                     <li className="flex items-start gap-2">
                                                         <span className="font-bold">2.</span>

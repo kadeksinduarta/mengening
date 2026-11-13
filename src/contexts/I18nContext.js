@@ -14,14 +14,18 @@ export const I18nProvider = ({ children }) => {
   const [language, setLanguage] = useState("id");
 
   useEffect(() => {
-    // Check local storage for saved language preference on mount
+    // localStorage dan navigator.language hanya ada di browser, jadi preferensi
+    // bahasa wajib dibaca setelah mount. Membacanya saat render akan membuat
+    // HTML server berbeda dari klien dan memicu hydration mismatch.
     const savedLang = localStorage.getItem("language");
     if (savedLang && translations[savedLang]) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setLanguage(savedLang);
     } else {
       // If no saved preference, check browser language
       const browserLang = navigator.language.split("-")[0];
       if (translations[browserLang]) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setLanguage(browserLang);
       }
     }
