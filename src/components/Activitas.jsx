@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useTranslation } from "@/contexts/I18nContext";
 
-const canangImage = "../Gallery11.jpg";
-const meditasiImage = "../Gallery12.jpg";
-const melukatImage = "../Gallery8.jpg";
-const sembahyangImage = "../Gallery13.jpg";
+const canangImage = "/Gallery11.webp";
+const meditasiImage = "/Gallery12.webp";
+const melukatImage = "/Gallery8.webp";
+const sembahyangImage = "/Gallery13.webp";
 
 export default function Activitas() {
   const { t } = useTranslation();
@@ -78,10 +79,12 @@ export default function Activitas() {
             <div className={`md:w-1/2 px-6 flex justify-center ${step.side === 'right' ? 'md:justify-start' : 'md:justify-end'}`}>
               <div className="relative group w-full max-w-md aspect-[4/3] overflow-hidden rounded-2xl shadow-lg border border-white">
                 <div className="absolute inset-0 bg-blue-900/10 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-                <img
+                <Image
                   src={step.image}
                   alt={step.title}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                  fill
+                  sizes="(max-width: 768px) 100vw, 448px"
+                  className="object-cover transition-transform duration-700 group-hover:scale-110"
                 />
               </div>
             </div>

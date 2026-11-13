@@ -15,8 +15,10 @@ export default function Home() {
         muted
         loop
         playsInline
+        poster="/hero-poster.webp"
+        preload="metadata"
       >
-        <source src="/video-melukat-mengening-fixx.mp4" type="video/mp4" />
+        <source src="/hero-video.mp4" type="video/mp4" />
       </video>
 
       {/* Overlay: Enhanced gradient for better readability */}

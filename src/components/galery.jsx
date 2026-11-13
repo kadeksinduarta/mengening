@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import Image from "next/image";
 import AOS from "aos";
 import "aos/dist/aos.css";
 import { useTranslation } from "@/contexts/I18nContext";
@@ -12,12 +13,12 @@ function Gallery() {
 
   // Filtered high-quality images only
   const images = [
-    { src: "Gallery1.jpg", alt: t("gallery.alt1"), span: "col-span-1 md:col-span-2 row-span-2" },
-    { src: "Gallery8.jpg", alt: t("gallery.alt2"), span: "col-span-1" },
-    { src: "Gallery9.jpg", alt: t("gallery.alt3"), span: "col-span-1" },
-    { src: "Gallery11.jpg", alt: t("gallery.alt4"), span: "col-span-1" },
-    { src: "Gallery12.jpg", alt: t("gallery.alt5"), span: "col-span-1 md:col-span-2" },
-    { src: "Gallery14.jpeg", alt: t("gallery.alt6"), span: "col-span-1" },
+    { src: "/Gallery1.webp", alt: t("gallery.alt1"), span: "col-span-1 md:col-span-2 row-span-2" },
+    { src: "/Gallery8.webp", alt: t("gallery.alt2"), span: "col-span-1" },
+    { src: "/Gallery9.webp", alt: t("gallery.alt3"), span: "col-span-1" },
+    { src: "/Gallery11.webp", alt: t("gallery.alt4"), span: "col-span-1" },
+    { src: "/Gallery12.webp", alt: t("gallery.alt5"), span: "col-span-1 md:col-span-2" },
+    { src: "/Gallery14.webp", alt: t("gallery.alt6"), span: "col-span-1" },
   ];
 
   return (
@@ -47,11 +48,12 @@ function Gallery() {
               data-aos-delay={index * 100}
             >
               <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-colors duration-500 z-10"></div>
-              <img
+              <Image
                 src={img.src}
                 alt={img.alt}
-                className="w-full h-full object-cover transform group-hover:scale-105 transition duration-700 ease-out"
-                loading="lazy"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1280px) 50vw, 600px"
+                className="object-cover transform group-hover:scale-105 transition duration-700 ease-out"
               />
               <div className="absolute inset-0 flex items-end p-6 opacity-0 group-hover:opacity-100 transition duration-500 z-20">
                 <p className="text-white font-medium text-lg drop-shadow-md transform translate-y-4 group-hover:translate-y-0 transition duration-500">

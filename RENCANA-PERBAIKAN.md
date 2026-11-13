@@ -22,7 +22,7 @@
 | M2 | Fondasi SEO | Domain, sitemap, rendering | 3 | Ya | 🟡 2 selesai, domain pending |
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
-| M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | ⬜ Belum |
+| M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | 🟡 2 selesai, T-24 tersisa |
 | M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | ⬜ Belum |
 
 ---
@@ -581,7 +581,26 @@ Lalu tambahkan tombol setujui/tolak di `/admin/review`, dan ubah pesan sukses di
 
 ## M5 — Performa & aset
 
-### - [ ] T-22 · Kompres dan optimalkan media beranda
+### - [x] T-22 · Kompres dan optimalkan media beranda
+
+> **Selesai 13 Nov 2026. Total `public/` turun dari 14 MB ke 3,5 MB.**
+>
+> | Aset | Sebelum | Sesudah |
+> |---|---|---|
+> | 8 gambar terpakai (JPEG) | 6,7 MB | 2,2 MB (WebP) |
+> | `Gallery14.jpeg` saja | 2,7 MB | 285 KB |
+> | Video hero | 2,0 MB | 1,2 MB |
+> | `favicon.ico` | 304 KB | 4 KB |
+>
+> **Dua temuan saat mengerjakan:**
+> 1. `cwebp -resize 1200 0` **memperbesar** gambar yang aslinya 923px — menambah byte tanpa menambah detail. Skripnya diubah agar hanya mengecilkan bila lebar asli melebihi 1200.
+> 2. Video punya trek audio AAC padahal diputar `muted`. Dibuang bersama re-encode CRF 30 tanpa mengubah resolusi (832×464).
+>
+> `next/image` kini dipakai di `galery.jsx`, `About.jsx`, dan `Activitas.jsx`. Video diberi `poster="/hero-poster.webp"` (93 KB) dan `preload="metadata"`, jadi 1,2 MB-nya tidak lagi diunduh sebelum terlihat.
+>
+> **Bug ikutan yang ditemukan:** `Activitas.jsx` memakai path relatif `"../Gallery11.jpg"`. Dari beranda itu kebetulan resolve ke `/Gallery11.jpg`, tetapi dari URL berjenjang seperti `/blog/2` akan menjadi `/blog/Gallery11.jpg` dan gagal. Sudah diubah ke path absolut.
+>
+> **Perlu dicek mata:** video di-encode ulang pada CRF 30. Ia berada di balik overlay gelap sehingga artefak tersamar, tapi kalau terlihat terlalu lembut, encode ulang dengan CRF 26.
 
 **Temuan:** 20 (Menengah, terverifikasi)
 **Referensi:** `public/`, `src/components/galery.jsx:50-55`, `src/components/home.jsx:11-19`
@@ -598,7 +617,11 @@ Enam gambar galeri yang dipakai berjumlah ±5,9 MB — `Gallery14.jpeg` sendiri 
 
 ---
 
-### - [ ] T-23 · Bersihkan aset dan boilerplate tak terpakai
+### - [x] T-23 · Bersihkan aset dan boilerplate tak terpakai
+
+> **Selesai 13 Nov 2026.** Dihapus: 7 gambar galeri yang tidak pernah dirujuk (Gallery2–7, Gallery10), lima SVG bawaan create-next-app, `qris-example.png`, dan route contoh `src/pages/api/hello.js` yang mengembalikan "John Doe".
+> Setiap file yang tersisa di `public/` sudah diverifikasi punya rujukan di `src/`.
+> **Belum:** README masih isi create-next-app.
 
 **Temuan:** 21 (Menengah, terverifikasi)
 **Referensi:** `public/`, `src/pages/api/hello.js`, `README.md`

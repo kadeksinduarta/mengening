@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { useTranslation } from "@/contexts/I18nContext";
 
 export default function About() {
@@ -19,10 +20,13 @@ export default function About() {
       >
         <div className="absolute top-6 -left-6 w-full h-full border-2 border-blue-100 rounded-3xl z-0"></div>
         <div className="relative z-10 w-full max-w-md">
-          <img
-            src="/Gallery.jpg"
+          <Image
+            src="/Gallery.webp"
             alt="Melukat di Pura Mengening"
-            className="w-full h-full object-cover rounded-3xl shadow-2xl hover:shadow-3xl transition-shadow duration-500"
+            width={923}
+            height={1230}
+            sizes="(max-width: 768px) 100vw, 448px"
+            className="w-full h-auto object-cover rounded-3xl shadow-2xl hover:shadow-3xl transition-shadow duration-500"
           />
           {/* Decoration Quote */}
           <div className="absolute -bottom-8 -right-8 bg-white p-8 rounded-2xl shadow-xl border border-slate-50 max-w-xs hidden md:block">
