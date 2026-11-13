@@ -158,12 +158,13 @@
     "ratingLabel": "Penilaian Anda",
     "submitBtn": "Kirim Ulasan",
     "submittingBtn": "Mengirim...",
-    "successMsg": "Terima kasih! Ulasan Anda telah ditampilkan.",
+    "successMsg": "Terima kasih! Ulasan Anda akan tampil setelah ditinjau admin.",
     "errorRequired": "Mohon isi nama, pesan, dan penilaian Anda.",
     "errorSubmit": "Gagal mengirim ulasan. Silakan coba lagi.",
     "errorLoad": "Gagal memuat ulasan. Coba muat ulang halaman.",
     "emptyState": "Belum ada ulasan. Jadilah yang pertama berbagi pengalaman.",
-    "listHeading": "Testimoni"
+    "listHeading": "Testimoni",
+    "errorLength": "Ulasan minimal 10 karakter dan maksimal 1000 karakter."
   },
   "contact": {
     "sectionTitle": "Hubungi Kami",

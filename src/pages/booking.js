@@ -1,6 +1,6 @@
 import SEO from '@/components/SEO';
 import PublicLayout from '@/components/PublicLayout';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { supabase, PAYMENTS_BUCKET } from '@/utils/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -35,6 +35,34 @@ const REQUIRED_BY_STEP = {
     2: ['tanggal', 'jam', 'alamat'],
 };
 
+// Tanggal lokal, bukan UTC. toISOString() memakai UTC, sehingga di WITA (UTC+8)
+// antara tengah malam dan jam 8 pagi ia masih mengembalikan tanggal kemarin —
+// dan batas bawahnya meleset sehari.
+const todayLocalISO = () => new Date().toLocaleDateString('sv-SE');
+
+// supabase-js memakai bentuk error sendiri ({ message, code, details }), bukan
+// bentuk axios ({ response.data }). Membaca properti yang salah membuat setiap
+// kegagalan booking tercatat sebagai `undefined`.
+const describeBookingError = (error) => {
+    if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+        return 'Koneksi internet terputus. Periksa jaringan Anda, lalu kirim ulang.';
+    }
+    if (error?.stage === 'upload') {
+        return 'Bukti transfer gagal diunggah. Periksa koneksi Anda, lalu kirim ulang.';
+    }
+    if (typeof error?.message === 'string' && error.message.includes('Failed to fetch')) {
+        return 'Tidak bisa terhubung ke server. Periksa koneksi Anda, lalu kirim ulang.';
+    }
+    if (error?.code === '42501') {
+        return 'Booking ditolak server. Silakan hubungi kami lewat WhatsApp agar dibantu langsung.';
+    }
+    return 'Terjadi kesalahan saat mengirim booking. Silakan coba lagi, atau hubungi kami lewat WhatsApp.';
+};
+
+const MAX_PROOF_SIZE_MB = 5;
+const MAX_PROOF_BYTES = MAX_PROOF_SIZE_MB * 1024 * 1024;
+const ALLOWED_PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 export default function BookingForm() {
     const router = useRouter();
     const [currentStep, setCurrentStep] = useState(1);
@@ -43,6 +71,15 @@ export default function BookingForm() {
     const [submitted, setSubmitted] = useState(false);
     const [phoneError, setPhoneError] = useState('');
     const [missingFields, setMissingFields] = useState([]);
+    const [proofError, setProofError] = useState('');
+    const tanggalRef = useRef(null);
+
+    // Halaman ini di-prerender saat build, jadi atribut min dipasang setelah
+    // mount. Kalau dihitung saat render, tanggal build-lah yang ikut tercetak
+    // ke HTML dan nilainya akan basi sejak hari pertama.
+    useEffect(() => {
+        if (tanggalRef.current) tanggalRef.current.min = todayLocalISO();
+    }, []);
 
     const [formData, setFormData] = useState({
         name: '',
@@ -77,7 +114,29 @@ export default function BookingForm() {
         setMissingFields((prev) => prev.filter((field) => field !== name));
 
         if (name === 'bukti_transfer') {
-            setFormData({ ...formData, bukti_transfer: files[0] });
+            const file = files[0] || null;
+
+            // Atribut accept="image/*" hanya menyaring tampilan dialog file;
+            // pengguna tetap bisa memilih "Semua file" dan mengirim apa saja.
+            if (file && !ALLOWED_PROOF_TYPES.includes(file.type)) {
+                setProofError('Bukti transfer harus berupa gambar JPG, PNG, atau WebP.');
+                setFormData({ ...formData, bukti_transfer: null });
+                e.target.value = ''; // supaya file yang sama bisa dipilih ulang
+                return;
+            }
+
+            if (file && file.size > MAX_PROOF_BYTES) {
+                setProofError(
+                    `Ukuran bukti transfer maksimal ${MAX_PROOF_SIZE_MB} MB. ` +
+                    `File Anda ${(file.size / 1024 / 1024).toFixed(1)} MB.`
+                );
+                setFormData({ ...formData, bukti_transfer: null });
+                e.target.value = '';
+                return;
+            }
+
+            setProofError('');
+            setFormData({ ...formData, bukti_transfer: file });
         } else if (name === 'phone') {
             const cleaned = value.replace(/[^0-9+]/g, '');
             setFormData({ ...formData, phone: cleaned });
@@ -106,6 +165,19 @@ export default function BookingForm() {
         if (currentStep === 1 && !isValidPhone(formData.phone)) {
             setMissingFields(['phone']);
             setMessage('Nomor WhatsApp tidak valid. Contoh: 081234567890.');
+            return;
+        }
+
+        // Atribut min hanya membatasi date picker; tanggal masih bisa diketik
+        // langsung, jadi pemeriksaannya harus ada di sini juga.
+        if (currentStep === 2 && formData.tanggal < todayLocalISO()) {
+            setMissingFields(['tanggal']);
+            setMessage('Tanggal kunjungan tidak boleh di masa lalu.');
+            return;
+        }
+
+        if (currentStep === 2 && formData.payment_method === 'Transfer' && !formData.bukti_transfer) {
+            setMessage('Mohon unggah bukti transfer, atau pilih metode pembayaran Cash.');
             return;
         }
 
@@ -165,7 +237,10 @@ export default function BookingForm() {
                 const { error: uploadError } = await supabase.storage
                     .from(PAYMENTS_BUCKET)
                     .upload(filePath, file);
-                if (uploadError) throw uploadError;
+                if (uploadError) {
+                    uploadError.stage = 'upload';
+                    throw uploadError;
+                }
                 buktiUrl = filePath;
             }
 
@@ -182,7 +257,21 @@ export default function BookingForm() {
                 catatan: formData.catatan
             }]);
             
-            if (insertError) throw insertError;
+            if (insertError) {
+                // Tanpa ini file bukti transfer tertinggal di storage tanpa
+                // ada baris booking yang merujuknya.
+                if (buktiUrl) {
+                    const { error: removeError } = await supabase.storage
+                        .from(PAYMENTS_BUCKET)
+                        .remove([buktiUrl]);
+                    if (removeError) {
+                        console.error('Bukti transfer tertinggal di storage:', buktiUrl, removeError.message);
+                    }
+                }
+                insertError.stage = 'insert';
+                throw insertError;
+            }
+
             setSubmitted(true);
 
             // Redirect to WhatsApp after 2 seconds
@@ -192,8 +281,13 @@ export default function BookingForm() {
                 window.location.href = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
             }, 2000);
         } catch (error) {
-            console.log('Error:', error.response?.data);
-            setMessage('Terjadi kesalahan saat mengirim booking. Silakan coba lagi.');
+            console.error('Booking gagal:', {
+                stage: error?.stage ?? 'unknown',
+                message: error?.message,
+                code: error?.code,
+                details: error?.details,
+            });
+            setMessage(describeBookingError(error));
         } finally {
             setLoading(false);
         }
@@ -417,6 +511,7 @@ export default function BookingForm() {
                                                     <Input
                                                         type="date"
                                                         name="tanggal"
+                                                        ref={tanggalRef}
                                                         aria-invalid={missingFields.includes('tanggal')}
                                                         value={formData.tanggal}
                                                         onChange={handleChange}
@@ -507,14 +602,30 @@ export default function BookingForm() {
                                                         <strong className="text-lg">Bank Mandiri 1450016415263 an. NI KOMANG TASYA APRI</strong>
                                                     </p>
                                                     <Label className="mb-2 block">
-                                                        Upload Bukti Transfer
+                                                        Upload Bukti Transfer <span className="text-red-500">*</span>
                                                     </Label>
                                                     <Input
                                                         type="file"
                                                         name="bukti_transfer"
                                                         onChange={handleChange}
-                                                        accept="image/*"
+                                                        accept={ALLOWED_PROOF_TYPES.join(',')}
+                                                        aria-invalid={Boolean(proofError)}
                                                     />
+                                                    <p className="text-xs text-blue-700/80 mt-2">
+                                                        Format JPG, PNG, atau WebP. Maksimal {MAX_PROOF_SIZE_MB} MB.
+                                                    </p>
+                                                    {proofError && (
+                                                        <p className="text-xs text-red-600 font-semibold mt-2 flex items-center gap-1.5">
+                                                            <AlertCircle size={14} className="shrink-0" />
+                                                            {proofError}
+                                                        </p>
+                                                    )}
+                                                    {formData.bukti_transfer && !proofError && (
+                                                        <p className="text-xs text-emerald-700 font-semibold mt-2 flex items-center gap-1.5">
+                                                            <Check size={14} className="shrink-0" />
+                                                            {formData.bukti_transfer.name}
+                                                        </p>
+                                                    )}
                                                 </motion.div>
                                             )}
 

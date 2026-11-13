@@ -21,7 +21,7 @@
 | M1 | Kunci akses admin | Sesi & autentikasi | 3 | Ya | 🟢 Kode selesai, perlu uji |
 | M2 | Fondasi SEO | Domain, sitemap, rendering | 3 | Ya | 🟡 2 selesai, domain pending |
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
-| M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟡 Berjalan (1/6) |
+| M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | ⬜ Belum |
 | M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | ⬜ Belum |
 
@@ -423,7 +423,12 @@ Lima `<a href="/booking">` memicu reload penuh alih-alih navigasi klien — tera
 
 ## M4 — Alur booking & review yang bisa dipercaya
 
-### - [ ] T-17 · Tolak tanggal yang sudah lewat
+### - [x] T-17 · Tolak tanggal yang sudah lewat
+
+> **Selesai 13 Nov 2026.** Dua lapis: atribut `min` pada input tanggal, dan pemeriksaan di `nextStep()` karena `min` hanya membatasi date picker sementara tanggalnya masih bisa diketik langsung.
+> **Dua koreksi dari rencana awal:**
+> 1. `new Date().toISOString().split('T')[0]` yang tertulis di langkah bawah ini **salah untuk WITA** — ia memakai UTC, jadi antara tengah malam dan jam 8 pagi batasnya mundur sehari dan tanggal kemarin tetap lolos. Terbukti saat pengerjaan: lokal `2026-11-13`, UTC `2026-11-12`. Diganti `toLocaleDateString('sv-SE')`.
+> 2. `min` dipasang lewat `ref` di dalam `useEffect`, bukan saat render. `/booking` di-prerender ketika build, sehingga nilai yang dihitung saat render akan membekukan tanggal build ke HTML dan memicu hydration mismatch.
 
 **Temuan:** 12 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/booking.js:375-381`, `:63-71`
@@ -458,7 +463,19 @@ dan tambahkan pemeriksaan yang sama di `validateStep(2)` — atribut `min` saja 
 
 ---
 
-### - [ ] T-18 · Rapatkan alur transfer bank
+### - [x] T-18 · Rapatkan alur transfer bank
+
+> **Selesai 13 Nov 2026 — dua dari tiga bagian berfungsi penuh.**
+>
+> **1. Bukti wajib saat metode Transfer.** Diperiksa di `nextStep()` step 2, dengan pesan yang menawarkan jalan keluar ("atau pilih metode pembayaran Cash") alih-alih sekadar menolak.
+>
+> **2. Validasi file.** Maksimal 5 MB, hanya `image/jpeg`, `image/png`, `image/webp`. Atribut `accept` saja tidak cukup — pengguna bisa memilih "Semua file" di dialog dan mengirim apa pun. File yang ditolak dikosongkan dari state **dan** dari elemen input (`e.target.value = ''`), supaya file yang sama bisa dipilih ulang setelah diperbaiki. Nama file yang diterima ditampilkan sebagai konfirmasi hijau.
+>
+> **3. Pembersihan file yatim — kodenya ada, tapi RLS akan menolaknya.** `supabase.storage.remove()` dipanggil saat insert gagal, namun `storage.objects` **tidak punya policy DELETE sama sekali** (terlihat dari hasil `pg_policies`: hanya 2 INSERT dan 2 SELECT). Jadi panggilan itu akan ditolak dan filenya tetap tertinggal. `console.error` yang mencatat path-nya pun hanya muncul di browser pengunjung, yang tidak akan pernah Anda lihat.
+>
+> **Keputusan yang perlu diambil pemilik:**
+> - **Biarkan.** Orphan hanya muncul saat insert gagal — jarang. Kerugiannya hanya kuota storage. Bersihkan manual sesekali dengan membandingkan isi bucket `payments` terhadap kolom `bukti_transfer` di tabel `bookings`.
+> - **Beri `anon` hak DELETE di bucket `payments`.** **Tidak disarankan.** Nama file dibentuk dari `Date.now()` + 4-6 karakter acak, cukup lemah untuk ditebak, sehingga orang lain bisa menghapus bukti pembayaran pelanggan yang sah. Menukar kebersihan storage dengan risiko kehilangan bukti transaksi bukan pertukaran yang sepadan.
 
 **Temuan:** 13 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/booking.js:118-147`, `:449-466`
@@ -474,7 +491,11 @@ Saat metode "Transfer Bank" dipilih, `bukti_transfer` tetap opsional. Tidak ada 
 
 ---
 
-### - [ ] T-19 · Perbaiki penanganan error booking
+### - [x] T-19 · Perbaiki penanganan error booking
+
+> **Selesai 13 Nov 2026.** `console.log('Error:', error.response?.data)` diganti `console.error` yang mencatat `stage`, `message`, `code`, dan `details` — bentuk error milik supabase-js, bukan axios.
+> Ditambahkan `describeBookingError()` sehingga pengunjung menerima pesan yang bisa ditindaklanjuti, bukan satu kalimat umum untuk semua kegagalan: koneksi putus, unggahan bukti gagal, server tidak terjangkau, atau penolakan RLS (`42501`). Tiap kegagalan upload dan insert ditandai `stage` saat dilempar, supaya tahapnya tidak hilang di `catch` bersama.
+> Semua pesan jatuhnya menawarkan WhatsApp sebagai jalan keluar — alur booking ini memang berakhir di sana, jadi pengunjung tidak kehilangan cara menghubungi.
 
 **Temuan:** 14 (Tinggi, terverifikasi)
 **Referensi:** `src/pages/booking.js:157`
@@ -488,6 +509,12 @@ Saat metode "Transfer Bank" dipilih, `bukti_transfer` tetap opsional. Tidak ada 
 ---
 
 ### - [ ] T-20 · Tambahkan status booking
+
+> **Progres 13 Nov 2026 — kode selesai, SQL belum dijalankan.**
+> SQL tersimpan di `supabase/bookings_status.sql` (aman diulang): kolom `status` dengan default `'pending'`, constraint empat nilai, indeks, dan policy UPDATE untuk `authenticated`.
+> Kode dashboard: dropdown status di tabel desktop, kartu mobile, dan modal detail; filter "Semua status" di header; pembaruan optimistis yang dikembalikan bila server menolak. Tombol hapus yang gagal diam-diam dihapus — `handleDelete` dan ikon `Trash2` sudah tidak ada di file.
+> **⚠️ Jalankan SQL-nya SEBELUM deploy kode ini.** Diverifikasi barusan kolomnya belum ada (`column bookings.status does not exist`); tanpa kolom itu semua booking tampil "Pending" dan mengubah status akan gagal.
+> **Keputusan yang diambil:** tidak ada policy DELETE yang dibuat. Booking batal ditandai `cancelled`, bukan dihapus, supaya riwayat pelanggan tetap utuh. Kalau Anda tetap ingin hapus permanen, itu perlu policy DELETE terpisah — katakan saja.
 
 **Temuan:** 16 (Tinggi, terverifikasi)
 **Referensi:** tabel `bookings`, `src/pages/admin/booking.js`
@@ -509,6 +536,15 @@ Lalu tambahkan kontrol ubah status di dashboard, dan tampilkan sebagai badge ber
 ---
 
 ### - [ ] T-21 · Moderasi review sebelum tayang
+
+> **Progres 13 Nov 2026 — kode selesai, SQL belum dijalankan.**
+> SQL di `supabase/reviews_moderation.sql`: kolom `approved` (default `false`), backfill `approved = true` untuk review yang dibuat sebelum 13 Nov agar testimoni yang sudah tayang tidak mendadak hilang, constraint panjang pesan 10–1000 dan nama 2–80, indeks, serta policy SELECT terpisah — `anon` hanya melihat yang `approved = true`, `authenticated` melihat semua.
+> Kode: tombol setujui/sembunyikan di tabel desktop dan kartu mobile, badge Tayang/Menunggu, dan filter "Menunggu moderasi" berpenghitung di header. Form publik menampilkan pesan bahwa ulasan tayang setelah ditinjau.
+>
+> **⚠️ Urutannya kebalikan dari T-20: DEPLOY KODE DULU, baru jalankan SQL.**
+> `Review.jsx` yang lama memakai `.insert().select().single()`. Begitu policy SELECT publik dibatasi `approved = true`, baris yang baru dimasukkan tidak terlihat oleh pengirimnya sendiri, `.single()` mengembalikan error, dan pengunjung melihat "Gagal mengirim ulasan" padahal ulasannya tersimpan — lalu mengirim ulang dan terduplikasi. Versi baru sudah membuang `.select()`, tapi perbaikan itu harus sudah tayang sebelum SQL-nya dijalankan.
+>
+> **Belum termasuk:** rate limit. Satu orang masih bisa mengirim banyak ulasan; bedanya sekarang semuanya tertahan di antrean moderasi, tidak langsung tampil di beranda.
 
 **Temuan:** 17 (Tinggi, terverifikasi)
 **Referensi:** `supabase/reviews_schema.sql:20-34`, `src/components/Review.jsx`, `src/pages/admin/review/index.js`

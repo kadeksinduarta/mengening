@@ -4,7 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase, getPaymentProofUrl } from '@/utils/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, Filter, Trash2, ExternalLink,
+    Search, Filter, ExternalLink,
     MessageCircle, MoreHorizontal, Calendar,
     User, Users, Mail, Phone, MapPin, CheckCircle, Clock, X
 } from 'lucide-react';
@@ -15,6 +15,20 @@ import { Input } from '@/components/ui/input';
 import {
     Table, TableBody, TableCell, TableHead, TableHeader, TableRow
 } from '@/components/ui/table';
+
+const STATUSES = {
+    pending:   { label: 'Pending',      className: 'bg-amber-50 text-amber-700 border-amber-200' },
+    confirmed: { label: 'Dikonfirmasi', className: 'bg-blue-50 text-blue-700 border-blue-200' },
+    done:      { label: 'Selesai',      className: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+    cancelled: { label: 'Dibatalkan',   className: 'bg-slate-100 text-slate-500 border-slate-200' },
+};
+
+const STATUS_ORDER = ['pending', 'confirmed', 'done', 'cancelled'];
+
+// Dipakai sebagai kelas <select> agar seragam dengan komponen Input.
+const STATUS_SELECT_CLASS =
+    'h-8 rounded-lg border bg-transparent px-2 text-xs font-semibold outline-none ' +
+    'transition-colors focus-visible:ring-3 focus-visible:ring-ring/50 cursor-pointer';
 
 const formatWhatsAppNumber = (phone) => {
     const digits = (phone || '').replace(/[^0-9]/g, '');
@@ -27,6 +41,8 @@ export default function BookingManagement() {
     const [loading, setLoading] = useState(true);
     const [bookings, setBookings] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [savingId, setSavingId] = useState(null);
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showDetail, setShowDetail] = useState(false);
     // Disimpan bersama id booking-nya supaya signed URL milik booking sebelumnya
@@ -65,23 +81,33 @@ export default function BookingManagement() {
         }
     };
 
-    const handleDelete = async (id) => {
-        if (confirm('Apakah Anda yakin ingin menghapus booking ini?')) {
-            try {
-                const { error } = await supabase.from('bookings').delete().eq('id', id);
-                if (error) throw error;
-                setBookings(bookings.filter(b => b.id !== id));
-            } catch (err) {
-                console.error('Error deleting booking:', err);
-                alert('Gagal menghapus booking.');
-            }
+    const updateStatus = async (id, status) => {
+        const previous = bookings;
+        // Diperbarui optimistis supaya dropdown tidak terasa menggantung,
+        // lalu dikembalikan kalau servernya menolak.
+        setBookings((prev) => prev.map((b) => (b.id === id ? { ...b, status } : b)));
+        setSavingId(id);
+
+        const { error } = await supabase.from('bookings').update({ status }).eq('id', id);
+
+        setSavingId(null);
+        if (error) {
+            console.error('Gagal mengubah status booking:', error.message, error.code);
+            setBookings(previous);
+            alert('Gagal mengubah status. Coba lagi.');
+            return;
         }
+
+        setSelectedBooking((current) =>
+            current && current.id === id ? { ...current, status } : current
+        );
     };
 
     const filteredBookings = bookings.filter(b =>
-        b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (statusFilter === 'all' || (b.status || 'pending') === statusFilter) &&
+        (b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         b.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.phone.includes(searchTerm)
+        b.phone.includes(searchTerm))
     );
 
     const openDetail = (booking) => {
@@ -108,6 +134,19 @@ export default function BookingManagement() {
                     />
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                    <div className="relative">
+                        <Filter size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => setStatusFilter(e.target.value)}
+                            className="h-9 rounded-xl border border-slate-200/80 bg-white pl-9 pr-3 text-xs font-semibold text-slate-700 outline-none focus-visible:ring-3 focus-visible:ring-ring/50 cursor-pointer"
+                        >
+                            <option value="all">Semua status</option>
+                            {STATUS_ORDER.map((key) => (
+                                <option key={key} value={key}>{STATUSES[key].label}</option>
+                            ))}
+                        </select>
+                    </div>
                     <Button variant="outline" className="gap-1.5 text-xs font-semibold rounded-xl border-slate-200/80 bg-white" onClick={fetchBookings}>
                         Refresh Data
                     </Button>
@@ -125,6 +164,7 @@ export default function BookingManagement() {
                                 <TableHead className="font-bold text-slate-500 text-xs py-4">Schedule</TableHead>
                                 <TableHead className="font-bold text-slate-500 text-xs py-4">Type</TableHead>
                                 <TableHead className="font-bold text-slate-500 text-xs py-4">Payment</TableHead>
+                                <TableHead className="font-bold text-slate-500 text-xs py-4">Status</TableHead>
                                 <TableHead className="font-bold text-slate-500 text-xs py-4 text-right pr-6">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -176,6 +216,18 @@ export default function BookingManagement() {
                                                 <span className="text-xs font-semibold text-slate-700">{b.payment_method}</span>
                                             </div>
                                         </TableCell>
+                                        <TableCell className="py-4">
+                                            <select
+                                                value={b.status || 'pending'}
+                                                onChange={(e) => updateStatus(b.id, e.target.value)}
+                                                disabled={savingId === b.id}
+                                                className={`${STATUS_SELECT_CLASS} ${STATUSES[b.status || 'pending'].className} disabled:opacity-50`}
+                                            >
+                                                {STATUS_ORDER.map((key) => (
+                                                    <option key={key} value={key}>{STATUSES[key].label}</option>
+                                                ))}
+                                            </select>
+                                        </TableCell>
                                         <TableCell className="py-4 text-right pr-6">
                                             <div className="flex items-center justify-end gap-1">
                                                 <Button variant="ghost" size="icon" onClick={() => openDetail(b)} title="View Details" className="h-8 w-8 hover:bg-slate-100 rounded-lg">
@@ -185,9 +237,6 @@ export default function BookingManagement() {
                                                     <a href={`https://wa.me/${formatWhatsAppNumber(b.phone)}`} target="_blank" rel="noreferrer">
                                                         <MessageCircle size={14} />
                                                     </a>
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(b.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                                                    <Trash2 size={14} />
                                                 </Button>
                                             </div>
                                         </TableCell>
@@ -241,17 +290,27 @@ export default function BookingManagement() {
                                     </Badge>
                                 </div>
 
-                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                                    <div className="flex items-center gap-1.5">
-                                        <div className={`w-1.5 h-1.5 rounded-full ${b.payment_method === 'Cash' ? 'bg-blue-500' : 'bg-emerald-500'}`}></div>
-                                        <span className="text-[11px] font-semibold text-slate-600">{b.payment_method}</span>
+                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                                    <div className="flex items-center gap-2 min-w-0">
+                                        <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${b.payment_method === 'Cash' ? 'bg-blue-500' : 'bg-emerald-500'}`}></div>
+                                        <span className="text-[11px] font-semibold text-slate-600 shrink-0">{b.payment_method}</span>
+                                        <select
+                                            value={b.status || 'pending'}
+                                            onChange={(e) => updateStatus(b.id, e.target.value)}
+                                            disabled={savingId === b.id}
+                                            className={`${STATUS_SELECT_CLASS} ${STATUSES[b.status || 'pending'].className} disabled:opacity-50 min-w-0`}
+                                        >
+                                            {STATUS_ORDER.map((key) => (
+                                                <option key={key} value={key}>{STATUSES[key].label}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <div className="flex items-center gap-1.5">
                                         <Button variant="ghost" size="icon" onClick={() => openDetail(b)} className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 border border-slate-100"><ExternalLink size={14} /></Button>
                                         <Button variant="ghost" size="icon" asChild className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100">
                                             <a href={`https://wa.me/${formatWhatsAppNumber(b.phone)}`} target="_blank" rel="noreferrer"><MessageCircle size={14} /></a>
                                         </Button>
-                                        <Button variant="ghost" size="icon" onClick={() => handleDelete(b.id)} className="w-8 h-8 rounded-lg bg-slate-50 text-red-500 border border-slate-100"><Trash2 size={14} /></Button>
+
                                     </div>
                                 </div>
                             </div>
@@ -307,6 +366,23 @@ export default function BookingManagement() {
 
                             {/* Modal Body */}
                             <div className="p-6 overflow-y-auto custom-scrollbar space-y-6">
+                                <div className="flex items-center justify-between gap-3 p-4 bg-slate-50/60 border border-slate-100 rounded-xl">
+                                    <div>
+                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Status Booking</p>
+                                        <p className="text-[11px] text-slate-500 mt-0.5">Tandai perkembangannya, data pelanggan tetap tersimpan.</p>
+                                    </div>
+                                    <select
+                                        value={selectedBooking.status || 'pending'}
+                                        onChange={(e) => updateStatus(selectedBooking.id, e.target.value)}
+                                        disabled={savingId === selectedBooking.id}
+                                        className={`${STATUS_SELECT_CLASS} ${STATUSES[selectedBooking.status || 'pending'].className} disabled:opacity-50 shrink-0`}
+                                    >
+                                        {STATUS_ORDER.map((key) => (
+                                            <option key={key} value={key}>{STATUSES[key].label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                     {/* Contact Column */}
                                     <div className="space-y-4">

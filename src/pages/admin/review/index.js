@@ -4,7 +4,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/utils/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, Plus, Edit2, Trash2, Star,
+    Search, Plus, Edit2, Trash2, Star, Check, EyeOff,
     MessageSquareQuote, X, AlertCircle
 } from 'lucide-react';
 import { Card } from '@/components/ui/card';
@@ -64,6 +64,8 @@ export default function ReviewManagement() {
     const [loading, setLoading] = useState(true);
     const [reviews, setReviews] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [pendingOnly, setPendingOnly] = useState(false);
+    const [savingId, setSavingId] = useState(null);
 
     const [showModal, setShowModal] = useState(false);
     const [editingId, setEditingId] = useState(null);
@@ -155,6 +157,21 @@ export default function ReviewManagement() {
         }
     };
 
+    const setApproved = async (id, approved) => {
+        const previous = reviews;
+        setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, approved } : r)));
+        setSavingId(id);
+
+        const { error } = await supabase.from('reviews').update({ approved }).eq('id', id);
+
+        setSavingId(null);
+        if (error) {
+            console.error('Gagal mengubah status review:', error.message, error.code);
+            setReviews(previous);
+            alert('Gagal mengubah status ulasan. Coba lagi.');
+        }
+    };
+
     const handleDelete = async (id) => {
         if (!confirm('Apakah Anda yakin ingin menghapus review ini?')) return;
         try {
@@ -170,9 +187,12 @@ export default function ReviewManagement() {
         }
     };
 
+    const pendingCount = reviews.filter((r) => !r.approved).length;
+
     const filteredReviews = reviews.filter((r) =>
-        r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        r.message.toLowerCase().includes(searchTerm.toLowerCase())
+        (!pendingOnly || !r.approved) &&
+        (r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.message.toLowerCase().includes(searchTerm.toLowerCase()))
     );
 
     const averageRating = reviews.length
@@ -198,6 +218,19 @@ export default function ReviewManagement() {
                     />
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
+                    <button
+                        onClick={() => setPendingOnly((v) => !v)}
+                        className={`inline-flex items-center gap-1.5 px-3.5 h-9 rounded-xl border text-xs font-semibold transition-colors ${pendingOnly
+                            ? 'bg-amber-50 border-amber-200 text-amber-700'
+                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
+                    >
+                        Menunggu moderasi
+                        <span className={`px-1.5 py-0.5 rounded font-bold ${pendingCount > 0
+                            ? 'bg-amber-500 text-white'
+                            : 'bg-slate-100 text-slate-400'}`}>
+                            {pendingCount}
+                        </span>
+                    </button>
                     <div className="hidden sm:flex items-center gap-1.5 px-3.5 h-9 bg-white border border-slate-200 rounded-xl">
                         <Star size={14} className="fill-amber-400 text-amber-400" />
                         <span className="text-xs font-bold text-slate-700">{averageRating}</span>
@@ -223,6 +256,7 @@ export default function ReviewManagement() {
                                 <TableHead className="font-bold text-slate-500 text-xs py-4">Rating</TableHead>
                                 <TableHead className="font-bold text-slate-500 text-xs py-4">Message</TableHead>
                                 <TableHead className="font-bold text-slate-500 text-xs py-4">Date</TableHead>
+                                <TableHead className="font-bold text-slate-500 text-xs py-4">Status</TableHead>
                                 <TableHead className="font-bold text-slate-500 text-xs py-4 text-right pr-6">Actions</TableHead>
                             </TableRow>
                         </TableHeader>
@@ -257,8 +291,31 @@ export default function ReviewManagement() {
                                                 {new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                                             </span>
                                         </TableCell>
+                                        <TableCell className="py-4">
+                                            {r.approved ? (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                    Tayang
+                                                </span>
+                                            ) : (
+                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                                                    Menunggu
+                                                </span>
+                                            )}
+                                        </TableCell>
                                         <TableCell className="py-4 text-right pr-6">
                                             <div className="flex items-center justify-end gap-1">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => setApproved(r.id, !r.approved)}
+                                                    disabled={savingId === r.id}
+                                                    title={r.approved ? 'Sembunyikan dari beranda' : 'Setujui dan tayangkan'}
+                                                    className={`h-8 w-8 rounded-lg ${r.approved
+                                                        ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
+                                                        : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'}`}
+                                                >
+                                                    {r.approved ? <EyeOff size={14} /> : <Check size={14} />}
+                                                </Button>
                                                 <Button variant="ghost" size="icon" onClick={() => openEditModal(r)} className="h-8 w-8 hover:bg-slate-100 rounded-lg">
                                                     <Edit2 size={14} className="text-slate-500" />
                                                 </Button>
@@ -271,7 +328,7 @@ export default function ReviewManagement() {
                                 ))
                             ) : (
                                 <TableRow>
-                                    <TableCell colSpan={5} className="py-16 text-center">
+                                    <TableCell colSpan={6} className="py-16 text-center">
                                         <div className="flex flex-col items-center gap-3">
                                             <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400">
                                                 <MessageSquareQuote size={20} />
@@ -310,9 +367,25 @@ export default function ReviewManagement() {
                                     </span>
                                 </div>
                                 <p className="text-sm text-slate-600 line-clamp-2">{r.message}</p>
-                                <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-1.5">
+                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5">
+                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${r.approved
+                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                        : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
+                                        {r.approved ? 'Tayang' : 'Menunggu'}
+                                    </span>
+                                    <div className="flex items-center gap-1.5">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setApproved(r.id, !r.approved)}
+                                        disabled={savingId === r.id}
+                                        className={`w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 ${r.approved ? 'text-slate-500' : 'text-emerald-600'}`}
+                                    >
+                                        {r.approved ? <EyeOff size={14} /> : <Check size={14} />}
+                                    </Button>
                                     <Button variant="ghost" size="icon" onClick={() => openEditModal(r)} className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 border border-slate-100"><Edit2 size={14} /></Button>
                                     <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="w-8 h-8 rounded-lg bg-slate-50 text-red-500 border border-slate-100"><Trash2 size={14} /></Button>
+                                    </div>
                                 </div>
                             </div>
                         ))

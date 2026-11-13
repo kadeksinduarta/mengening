@@ -222,21 +222,27 @@ const Review = () => {
     setError('');
     setSubmitting(true);
 
-    const { data, error: insertError } = await supabase
+    // Tanpa .select(). Review baru belum disetujui, sehingga policy SELECT
+    // publik tidak bisa melihatnya — returning row akan kosong dan ditafsirkan
+    // sebagai kegagalan, padahal insert-nya berhasil. Pengunjung lalu mengirim
+    // ulang dan ulasannya terduplikasi.
+    const { error: insertError } = await supabase
       .from('reviews')
-      .insert({ name: name.trim(), message: message.trim(), rating })
-      .select('id, name, message, rating, created_at')
-      .single();
+      .insert({ name: name.trim(), message: message.trim(), rating });
 
     setSubmitting(false);
 
     if (insertError) {
-      setError(t('review.errorSubmit'));
+      console.error('Gagal mengirim review:', insertError.message, insertError.code);
+      setError(
+        insertError.code === '23514'
+          ? t('review.errorLength')
+          : t('review.errorSubmit')
+      );
       return;
     }
 
-    // Newest review appears first in the carousel below.
-    setReviews((prev) => [data, ...prev]);
+    // Tidak ditambahkan ke daftar: ulasan baru tampil setelah admin menyetujui.
     setName('');
     setMessage('');
     setRating(0);

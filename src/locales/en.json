@@ -158,12 +158,13 @@
     "ratingLabel": "Your rating",
     "submitBtn": "Submit Review",
     "submittingBtn": "Submitting...",
-    "successMsg": "Thank you! Your review has been posted.",
+    "successMsg": "Thank you! Your review will appear once an admin has reviewed it.",
     "errorRequired": "Please fill in your name, a message, and a rating.",
     "errorSubmit": "Couldn't submit your review. Please try again.",
     "errorLoad": "Couldn't load reviews. Try refreshing the page.",
     "emptyState": "No reviews yet. Be the first to share your experience.",
-    "listHeading": "Testimonials"
+    "listHeading": "Testimonials",
+    "errorLength": "A review must be between 10 and 1000 characters."
   },
   "contact": {
     "sectionTitle": "Contact Us",
