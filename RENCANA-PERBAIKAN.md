@@ -537,7 +537,11 @@ Lalu tambahkan kontrol ubah status di dashboard, dan tampilkan sebagai badge ber
 
 ### - [ ] T-21 · Moderasi review sebelum tayang
 
-> **Progres 13 Nov 2026 — kode selesai, SQL belum dijalankan.**
+> **Progres 13 Nov 2026 — kode dan SQL selesai, tinggal satu uji coba.**
+> Diverifikasi dari luar: kolom `approved` ada, policy baru aktif, dan backfill bekerja — kedua testimoni lama tetap `approved = true` sehingga tidak hilang dari beranda.
+> **Belum:** kirim satu review uji dan pastikan ia masuk antrean "Menunggu moderasi" di dashboard, bukan langsung tampil di beranda. Itu satu-satunya kriteria yang belum terbukti.
+>
+> **Catatan pengerjaan:** versi pertama SQL ini gagal dengan `42601 syntax error at or near "Admin"`. Blok `do $$ ... $$` dibuang dan diganti pola `drop constraint if exists` + `add constraint`, semua `drop policy` dikumpulkan sebelum `create policy`, dan skripnya dipecah menjadi lima langkah bertanda. Tidak ada bagian dari versi pertama yang sempat tereksekusi — seluruh batch di-rollback.
 > SQL di `supabase/reviews_moderation.sql`: kolom `approved` (default `false`), backfill `approved = true` untuk review yang dibuat sebelum 13 Nov agar testimoni yang sudah tayang tidak mendadak hilang, constraint panjang pesan 10–1000 dan nama 2–80, indeks, serta policy SELECT terpisah — `anon` hanya melihat yang `approved = true`, `authenticated` melihat semua.
 > Kode: tombol setujui/sembunyikan di tabel desktop dan kartu mobile, badge Tayang/Menunggu, dan filter "Menunggu moderasi" berpenghitung di header. Form publik menampilkan pesan bahwa ulasan tayang setelah ditinjau.
 >
