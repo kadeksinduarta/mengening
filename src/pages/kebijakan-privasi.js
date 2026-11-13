@@ -1,12 +1,11 @@
 import SEO from '@/components/SEO';
 import PublicLayout from '@/components/PublicLayout';
+import { ADDRESS_LINE, CONTACT_EMAIL, PHONE_E164, whatsappLink } from '@/config/site';
 
 // Isi halaman ini disusun dari data yang benar-benar dikumpulkan kode:
 // kolom tabel bookings dan reviews, bucket payments, serta pihak ketiga yang
 // memang dipakai (Supabase, Vercel, WhatsApp, Google Maps). Jangan tambahkan
 // klaim yang tidak tercermin di kode.
-const WHATSAPP = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285857864840';
-const EMAIL = 'info@mengening.com';
 const UPDATED = '13 November 2026';
 
 function Section({ title, children }) {
@@ -156,24 +155,24 @@ export default function KebijakanPrivasi() {
                                 <li>
                                     WhatsApp:{' '}
                                     <a
-                                        href={`https://wa.me/${WHATSAPP}`}
+                                        href={whatsappLink()}
                                         target="_blank"
                                         rel="noopener noreferrer"
                                         className="text-blue-600 hover:text-blue-700 font-medium"
                                     >
-                                        +{WHATSAPP}
+                                        {PHONE_E164}
                                     </a>
                                 </li>
                                 <li>
                                     Email:{' '}
                                     <a
-                                        href={`mailto:${EMAIL}`}
+                                        href={`mailto:${CONTACT_EMAIL}`}
                                         className="text-blue-600 hover:text-blue-700 font-medium"
                                     >
-                                        {EMAIL}
+                                        {CONTACT_EMAIL}
                                     </a>
                                 </li>
-                                <li>Lokasi: Jalan Tirta No.25M, Sareseda, Tampaksiring, Gianyar, Bali 80552</li>
+                                <li>Lokasi: {ADDRESS_LINE}</li>
                             </ul>
                         </Section>
                     </article>

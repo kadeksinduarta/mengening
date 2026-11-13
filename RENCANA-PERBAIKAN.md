@@ -23,7 +23,7 @@
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | 🟡 2 selesai, T-24 tersisa |
-| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (1/7) |
+| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (2/7) |
 
 ---
 
@@ -656,7 +656,15 @@ Ketiga artikel memakai `image_url` yang menunjuk ke host luar — `soc-phoenix.s
 
 ## M6 — Kode, i18n, dan kepatuhan
 
-### - [ ] T-25 · Satukan konfigurasi kontak dan pembayaran
+### - [x] T-25 · Satukan konfigurasi kontak dan pembayaran
+
+> **Selesai 13 Nov 2026.** `src/config/site.js` kini memuat `SITE_URL`, nama bisnis, `WHATSAPP_NUMBER`, `PHONE_E164`, `CONTACT_EMAIL`, `ADDRESS`, `ADDRESS_LINE`, `GEO`, `OPENING_HOURS`, `BANK_TRANSFER`, dan pembantu `whatsappLink()`.
+>
+> Nomor WhatsApp sebelumnya tertulis di **tujuh** tempat: `WhatsappButton`, `Footer`, `Contact`, `booking.js`, `kebijakan-privasi.js`, dan dua kali di `SEO.jsx`. Nomor rekening tertanam di tengah JSX halaman booking. Alamat dan koordinat digandakan **di dalam satu file** `SEO.jsx` — objek `TouristAttraction` dan `provider` punya salinan masing-masing yang bisa saling bertentangan tanpa ketahuan; keduanya sekarang memakai objek yang sama.
+>
+> Diverifikasi pada build produksi: JSON-LD tetap valid, `provider.address` dan `provider.geo` identik dengan induknya, semua tautan `wa.me` dan `mailto` mengarah ke nilai yang sama. `NEXT_PUBLIC_WHATSAPP_NUMBER` ditambahkan ke `.env.local`.
+>
+> **Sengaja dibiarkan di tempatnya:** `addressText` di `id.json`/`en.json` — teks tampilan yang memang berbeda per bahasa ("Kabupaten Gianyar" vs "Gianyar Regency") — dan URL embed Google Maps di `Contact.jsx`, yang memuat place ID milik Google dan tidak bisa disusun dari koordinat.
 
 **Temuan:** 26 (Menengah, terverifikasi)
 **Referensi:** `src/components/Contact.jsx:73`, `src/components/Footer.jsx:6-7`, `src/component/WhatsappButton.jsx:4-5`, `src/pages/booking.js:155`, `:456`

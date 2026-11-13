@@ -3,6 +3,7 @@ import PublicLayout from '@/components/PublicLayout';
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { supabase, PAYMENTS_BUCKET } from '@/utils/supabase';
+import { BANK_TRANSFER, whatsappLink } from '@/config/site';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, User, Mail, Phone, FileText,
@@ -276,9 +277,7 @@ export default function BookingForm() {
 
             // Redirect to WhatsApp after 2 seconds
             setTimeout(() => {
-                const whatsappMessage = createWhatsAppMessage();
-                const whatsappNumber = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285857864840';
-                window.location.href = `https://wa.me/${whatsappNumber}?text=${whatsappMessage}`;
+                window.location.href = whatsappLink(createWhatsAppMessage());
             }, 2000);
         } catch (error) {
             console.error('Booking gagal:', {
@@ -599,7 +598,9 @@ export default function BookingForm() {
                                                 >
                                                     <p className="text-sm text-blue-800 font-medium mb-4">
                                                         Silakan transfer ke: <br />
-                                                        <strong className="text-lg">Bank Mandiri 1450016415263 an. NI KOMANG TASYA APRI</strong>
+                                                        <strong className="text-lg">
+                                                            {BANK_TRANSFER.bank} {BANK_TRANSFER.accountNumber} an. {BANK_TRANSFER.accountHolder}
+                                                        </strong>
                                                     </p>
                                                     <Label className="mb-2 block">
                                                         Upload Bukti Transfer <span className="text-red-500">*</span>

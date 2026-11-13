@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { MapPin, Mail, Phone, Clock } from "lucide-react";
 import { useTranslation } from "@/contexts/I18nContext";
+import { CONTACT_EMAIL, PHONE_E164, whatsappLink } from "@/config/site";
 
 function Contact() {
   const { t } = useTranslation();
@@ -57,7 +58,7 @@ function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-900 mb-1">{t("contact.emailTitle")}</h4>
-                  <a href="mailto:info@mengening.com" className="text-slate-600 hover:text-blue-600 transition-colors font-light">
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-slate-600 hover:text-blue-600 transition-colors font-light">
                     info.tasya@melukat.com
                   </a>
                 </div>
@@ -70,7 +71,7 @@ function Contact() {
                 </div>
                 <div>
                   <h4 className="font-semibold text-slate-900 mb-1">{t("contact.waTitle")}</h4>
-                  <a href="https://wa.me/6285857864840" className="text-slate-600 hover:text-blue-600 transition-colors font-light">
+                  <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-blue-600 transition-colors font-light">
                     +62 8585 7864 840
                   </a>
                 </div>

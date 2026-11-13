@@ -1,11 +1,11 @@
 import React from "react";
 import Link from "next/link";
+import { WHATSAPP_NUMBER } from "@/config/site";
 import { useTranslation } from "@/contexts/I18nContext";
 const Footer = () => {
   const { t } = useTranslation();
 
-  const whatsappNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "6285857864840";
+  const whatsappNumber = WHATSAPP_NUMBER;
   const whatsappMessage = encodeURIComponent(
     t("footer.waMsg")
   );

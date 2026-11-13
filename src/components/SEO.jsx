@@ -1,7 +1,9 @@
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import { useTranslation } from '@/contexts/I18nContext';
-import { SITE_URL } from '@/config/site';
+import {
+    SITE_URL, SITE_NAME, ADDRESS, GEO, PHONE_E164, OPENING_HOURS,
+} from '@/config/site';
 
 const SEO = ({
     title,
@@ -14,7 +16,7 @@ const SEO = ({
     const router = useRouter();
     const { t } = useTranslation();
 
-    const siteName = 'Tasya Melukat - Wisata Spiritual Pura Mengening Bali';
+    const siteName = SITE_NAME;
     const defaultTitle = t('seo.title');
     const fullTitle = title ? `${title} | ${siteName}` : defaultTitle;
     const defaultDescription = t('seo.description');
@@ -24,6 +26,23 @@ const SEO = ({
     const logoUrl = `${siteUrl}/Logo_Tasya.png`;
     const ogImage = image || logoUrl;
 
+    // Alamat dan koordinat sebelumnya ditulis dua kali di objek ini —
+    // TouristAttraction dan provider-nya — sehingga bisa saling bertentangan.
+    const postalAddress = {
+      "@type": "PostalAddress",
+      "streetAddress": ADDRESS.street,
+      "addressLocality": ADDRESS.locality,
+      "addressRegion": ADDRESS.region,
+      "postalCode": ADDRESS.postalCode,
+      "addressCountry": ADDRESS.country
+    };
+
+    const geoCoordinates = {
+      "@type": "GeoCoordinates",
+      "latitude": GEO.latitude,
+      "longitude": GEO.longitude
+    };
+
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "TouristAttraction",
@@ -32,27 +51,16 @@ const SEO = ({
       "url": siteUrl,
       "image": logoUrl,
       "logo": logoUrl,
-      "address": {
-        "@type": "PostalAddress",
-        "streetAddress": "Jalan Tirta No.25M, Sareseda",
-        "addressLocality": "Tampaksiring",
-        "addressRegion": "Bali",
-        "postalCode": "80552",
-        "addressCountry": "ID"
-      },
-      "geo": {
-        "@type": "GeoCoordinates",
-        "latitude": -8.42002469161896,
-        "longitude": 115.309451875886
-      },
-      "telephone": "+6285857864840",
+      "address": postalAddress,
+      "geo": geoCoordinates,
+      "telephone": PHONE_E164,
       "openingHoursSpecification": {
         "@type": "OpeningHoursSpecification",
         "dayOfWeek": [
           "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"
         ],
-        "opens": "08:00",
-        "closes": "17:00"
+        "opens": OPENING_HOURS.opens,
+        "closes": OPENING_HOURS.closes
       },
       "provider": {
         "@type": "LocalBusiness",
@@ -60,21 +68,10 @@ const SEO = ({
         "image": logoUrl,
         "logo": logoUrl,
         "url": siteUrl,
-        "telephone": "+6285857864840",
+        "telephone": PHONE_E164,
         "priceRange": "$$",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "Jalan Tirta No.25M, Sareseda",
-          "addressLocality": "Tampaksiring",
-          "addressRegion": "Bali",
-          "postalCode": "80552",
-          "addressCountry": "ID"
-        },
-        "geo": {
-          "@type": "GeoCoordinates",
-          "latitude": -8.42002469161896,
-          "longitude": 115.309451875886
-        },
+        "address": postalAddress,
+        "geo": geoCoordinates,
         "areaServed": "Bali, Indonesia",
         "serviceType": "Wisata Spiritual Melukat"
       }

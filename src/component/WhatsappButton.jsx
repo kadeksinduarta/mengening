@@ -1,13 +1,8 @@
 import { FaWhatsapp } from "react-icons/fa";
+import { whatsappLink } from "@/config/site";
 
 export default function WhatsappButton() {
-  const whatsappNumber =
-    process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "6285857864840";
-  const message = "Hai, saya ingin memesan layanan Anda."; // Pesan default
-
-  const whatsappLink = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(
-    message
-  )}`;
+  const href = whatsappLink("Hai, saya ingin memesan layanan Anda.");
 
   return (
     <div
@@ -17,7 +12,7 @@ export default function WhatsappButton() {
       }}
     >
       <a
-        href={whatsappLink}
+        href={href}
         target="_blank"
         rel="noopener noreferrer"
         className="bg-green-500 text-white p-4 rounded-full shadow-xl transition-all duration-300 transform group-hover:scale-110 group-hover:-translate-y-2 group-hover:bg-green-600 flex items-center justify-center relative overflow-hidden"
