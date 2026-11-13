@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { supabase, PAYMENTS_BUCKET } from '@/utils/supabase';
 import { BANK_TRANSFER, whatsappLink } from '@/config/site';
+import { useTranslation } from '@/contexts/I18nContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, Clock, MapPin, User, Mail, Phone, FileText,
@@ -22,15 +23,6 @@ const TIME_SLOTS = Array.from({ length: 19 }, (_, i) => {
     return `${String(Math.floor(minutes / 60)).padStart(2, '0')}:${String(minutes % 60).padStart(2, '0')}`;
 });
 
-const FIELD_LABELS = {
-    name: 'Nama Lengkap',
-    email: 'Email',
-    phone: 'Nomor WhatsApp',
-    tanggal: 'Tanggal',
-    jam: 'Jam Perkiraan',
-    alamat: 'Alamat Asal',
-};
-
 const REQUIRED_BY_STEP = {
     1: ['name', 'email', 'phone'],
     2: ['tanggal', 'jam', 'alamat'],
@@ -44,20 +36,20 @@ const todayLocalISO = () => new Date().toLocaleDateString('sv-SE');
 // supabase-js memakai bentuk error sendiri ({ message, code, details }), bukan
 // bentuk axios ({ response.data }). Membaca properti yang salah membuat setiap
 // kegagalan booking tercatat sebagai `undefined`.
-const describeBookingError = (error) => {
+const describeBookingError = (error, t) => {
     if (typeof navigator !== 'undefined' && navigator.onLine === false) {
-        return 'Koneksi internet terputus. Periksa jaringan Anda, lalu kirim ulang.';
+        return t('booking.errOffline');
     }
     if (error?.stage === 'upload') {
-        return 'Bukti transfer gagal diunggah. Periksa koneksi Anda, lalu kirim ulang.';
+        return t('booking.errUpload');
     }
     if (typeof error?.message === 'string' && error.message.includes('Failed to fetch')) {
-        return 'Tidak bisa terhubung ke server. Periksa koneksi Anda, lalu kirim ulang.';
+        return t('booking.errUnreachable');
     }
     if (error?.code === '42501') {
-        return 'Booking ditolak server. Silakan hubungi kami lewat WhatsApp agar dibantu langsung.';
+        return t('booking.errRejected');
     }
-    return 'Terjadi kesalahan saat mengirim booking. Silakan coba lagi, atau hubungi kami lewat WhatsApp.';
+    return t('booking.errGeneric');
 };
 
 const MAX_PROOF_SIZE_MB = 5;
@@ -66,6 +58,17 @@ const ALLOWED_PROOF_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export default function BookingForm() {
     const router = useRouter();
+    const { t } = useTranslation();
+
+    // Dibangun di dalam komponen karena t() baru tersedia di sini.
+    const FIELD_LABELS = {
+        name: t('booking.fName'),
+        email: t('booking.fEmail'),
+        phone: t('booking.fPhone'),
+        tanggal: t('booking.fDate'),
+        jam: t('booking.fTime'),
+        alamat: t('booking.fAddress'),
+    };
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
@@ -96,9 +99,9 @@ export default function BookingForm() {
     });
 
     const steps = [
-        { number: 1, title: 'Data Diri', icon: User },
-        { number: 2, title: 'Jadwal & Detail', icon: Calendar },
-        { number: 3, title: 'Konfirmasi', icon: CheckCircle },
+        { number: 1, title: t('booking.step1'), icon: User },
+        { number: 2, title: t('booking.step2'), icon: Calendar },
+        { number: 3, title: t('booking.step3'), icon: CheckCircle },
     ];
 
     const isValidPhone = (phone) => {
@@ -120,7 +123,7 @@ export default function BookingForm() {
             // Atribut accept="image/*" hanya menyaring tampilan dialog file;
             // pengguna tetap bisa memilih "Semua file" dan mengirim apa saja.
             if (file && !ALLOWED_PROOF_TYPES.includes(file.type)) {
-                setProofError('Bukti transfer harus berupa gambar JPG, PNG, atau WebP.');
+                setProofError(t('booking.errProofType'));
                 setFormData({ ...formData, bukti_transfer: null });
                 e.target.value = ''; // supaya file yang sama bisa dipilih ulang
                 return;
@@ -128,8 +131,9 @@ export default function BookingForm() {
 
             if (file && file.size > MAX_PROOF_BYTES) {
                 setProofError(
-                    `Ukuran bukti transfer maksimal ${MAX_PROOF_SIZE_MB} MB. ` +
-                    `File Anda ${(file.size / 1024 / 1024).toFixed(1)} MB.`
+                    t('booking.errProofSize')
+                        .replace('{max}', MAX_PROOF_SIZE_MB)
+                        .replace('{size}', (file.size / 1024 / 1024).toFixed(1))
                 );
                 setFormData({ ...formData, bukti_transfer: null });
                 e.target.value = '';
@@ -141,7 +145,7 @@ export default function BookingForm() {
         } else if (name === 'phone') {
             const cleaned = value.replace(/[^0-9+]/g, '');
             setFormData({ ...formData, phone: cleaned });
-            setPhoneError(cleaned && !isValidPhone(cleaned) ? 'Nomor WhatsApp tidak valid. Contoh: 081234567890' : '');
+            setPhoneError(cleaned && !isValidPhone(cleaned) ? t('booking.errPhone') : '');
         } else {
             setFormData({ ...formData, [name]: value });
         }
@@ -158,14 +162,17 @@ export default function BookingForm() {
         if (missing.length > 0) {
             setMissingFields(missing);
             setMessage(
-                `Mohon lengkapi ${missing.map((field) => FIELD_LABELS[field]).join(', ')}.`
+                t('booking.errMissing').replace(
+                    '{fields}',
+                    missing.map((field) => FIELD_LABELS[field]).join(', ')
+                )
             );
             return;
         }
 
         if (currentStep === 1 && !isValidPhone(formData.phone)) {
             setMissingFields(['phone']);
-            setMessage('Nomor WhatsApp tidak valid. Contoh: 081234567890.');
+            setMessage(t('booking.errPhone'));
             return;
         }
 
@@ -173,12 +180,12 @@ export default function BookingForm() {
         // langsung, jadi pemeriksaannya harus ada di sini juga.
         if (currentStep === 2 && formData.tanggal < todayLocalISO()) {
             setMissingFields(['tanggal']);
-            setMessage('Tanggal kunjungan tidak boleh di masa lalu.');
+            setMessage(t('booking.errPastDate'));
             return;
         }
 
         if (currentStep === 2 && formData.payment_method === 'Transfer' && !formData.bukti_transfer) {
-            setMessage('Mohon unggah bukti transfer, atau pilih metode pembayaran Cash.');
+            setMessage(t('booking.errProofRequired'));
             return;
         }
 
@@ -286,7 +293,7 @@ export default function BookingForm() {
                 code: error?.code,
                 details: error?.details,
             });
-            setMessage(describeBookingError(error));
+            setMessage(describeBookingError(error, t));
         } finally {
             setLoading(false);
         }
@@ -295,7 +302,7 @@ export default function BookingForm() {
     if (submitted) {
         return (
             <>
-                <SEO title="Booking Berhasil" />
+                <SEO title={t('booking.okTitle')} />
                 <PublicLayout solidNav>
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-slate-50 px-4 pt-24">
                     <motion.div
@@ -311,21 +318,20 @@ export default function BookingForm() {
                         >
                             <CheckCircle className="text-green-600" size={48} />
                         </motion.div>
-                        <h2 className="text-3xl font-bold text-slate-800 mb-4">Booking Berhasil!</h2>
+                        <h2 className="text-3xl font-bold text-slate-800 mb-4">{t('booking.okTitle')}</h2>
                         <p className="text-slate-600 mb-6 leading-relaxed">
-                            Terima kasih telah melakukan pemesanan. Anda akan segera diarahkan ke WhatsApp untuk konfirmasi booking.
+                            {t('booking.okBody')}
                         </p>
                         <div className="bg-blue-50 rounded-2xl p-6 mb-8">
                             <p className="text-sm text-blue-800 font-medium">
-                                💬 Pesan WhatsApp otomatis telah disiapkan dengan detail booking Anda.
-                                Silakan kirim pesan tersebut untuk konfirmasi.
+                                💬 {t('booking.okNote')}
                             </p>
                         </div>
                         <button
                             onClick={() => router.push('/')}
                             className="inline-block w-full bg-slate-100 text-slate-700 font-semibold py-3 rounded-xl hover:bg-slate-200 transition-colors"
                         >
-                            Kembali ke Beranda
+                            {t('booking.okBack')}
                         </button>
                     </motion.div>
                 </div>
@@ -337,8 +343,8 @@ export default function BookingForm() {
     return (
         <>
             <SEO
-                title="Form Booking Melukat"
-                description="Lakukan reservasi untuk ritual Melukat di Pura Mengening bersama Tasya Melukat. Isi form booking untuk pengalaman spiritual yang mendalam di Bali."
+                title={t('booking.seoTitle')}
+                description={t('booking.seoDesc')}
                 keywords="booking Pura Mengening, reservasi Melukat, booking wisata Bali, Tasya Melukat"
             />
 
@@ -350,7 +356,7 @@ export default function BookingForm() {
                         className="inline-flex items-center text-slate-600 hover:text-slate-900 mb-8 transition-colors font-medium group"
                     >
                         <ArrowLeft size={18} className="mr-2 group-hover:-translate-x-1 transition-transform" />
-                        Kembali ke Website
+                        {t('booking.back')}
                     </button>
 
                     {/* Progress Steps */}
@@ -386,11 +392,11 @@ export default function BookingForm() {
                     <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100">
                         <div className="bg-gradient-to-r from-blue-600 to-blue-700 px-8 py-12 text-center relative overflow-hidden">
                             <div className="absolute top-0 left-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10"></div>
-                            <h1 className="text-3xl sm:text-4xl font-bold text-white relative z-10">Form Booking Melukat</h1>
+                            <h1 className="text-3xl sm:text-4xl font-bold text-white relative z-10">{t('booking.title')}</h1>
                             <p className="text-blue-100 mt-3 relative z-10 text-lg">
-                                {currentStep === 1 && "Lengkapi data diri Anda"}
-                                {currentStep === 2 && "Pilih jadwal dan detail kunjungan"}
-                                {currentStep === 3 && "Periksa kembali informasi Anda"}
+                                {currentStep === 1 && t('booking.sub1')}
+                                {currentStep === 2 && t('booking.sub2')}
+                                {currentStep === 3 && t('booking.sub3')}
                             </p>
                         </div>
 
@@ -425,7 +431,7 @@ export default function BookingForm() {
                                         <div className="space-y-6">
                                             <div>
                                                 <Label className="mb-2 block">
-                                                    Nama Lengkap <span className="text-red-500">*</span>
+                                                    {t('booking.fName')} <span className="text-red-500">*</span>
                                                 </Label>
                                                 <Input
                                                     type="text"
@@ -433,13 +439,13 @@ export default function BookingForm() {
                                                     aria-invalid={missingFields.includes('name')}
                                                     value={formData.name}
                                                     onChange={handleChange}
-                                                    placeholder="Masukkan nama lengkap"
+                                                    placeholder={t('booking.phName')}
                                                     required
                                                 />
                                             </div>
                                             <div>
                                                 <Label className="mb-2 block">
-                                                    Email <span className="text-red-500">*</span>
+                                                    {t('booking.fEmail')} <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
                                                     <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -457,7 +463,7 @@ export default function BookingForm() {
                                             </div>
                                             <div>
                                                 <Label className="mb-2 block">
-                                                    Nomor WhatsApp <span className="text-red-500">*</span>
+                                                    {t('booking.fPhone')} <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
                                                     <Phone size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -505,7 +511,7 @@ export default function BookingForm() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <Label className="mb-2 block">
-                                                        Tanggal <span className="text-red-500">*</span>
+                                                        {t('booking.fDate')} <span className="text-red-500">*</span>
                                                     </Label>
                                                     <Input
                                                         type="date"
@@ -519,7 +525,7 @@ export default function BookingForm() {
                                                 </div>
                                                 <div>
                                                     <Label className="mb-2 block">
-                                                        Jam Perkiraan <span className="text-red-500">*</span>
+                                                        {t('booking.fTime')} <span className="text-red-500">*</span>
                                                     </Label>
                                                     <div className="relative">
                                                         <Clock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
@@ -531,7 +537,7 @@ export default function BookingForm() {
                                                             className="h-8 w-full appearance-none rounded-lg border border-input bg-transparent pl-10 pr-3 py-1 text-base outline-none transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 md:text-sm"
                                                             required
                                                         >
-                                                            <option value="">Pilih jam kedatangan</option>
+                                                            <option value="">{t('booking.phTime')}</option>
                                                             {TIME_SLOTS.map((slot) => (
                                                                 <option key={slot} value={slot}>
                                                                     {slot} WITA
@@ -543,7 +549,7 @@ export default function BookingForm() {
                                             </div>
                                             <div>
                                                 <Label className="mb-2 block">
-                                                    Alamat Asal <span className="text-red-500">*</span>
+                                                    {t('booking.fAddress')} <span className="text-red-500">*</span>
                                                 </Label>
                                                 <div className="relative">
                                                     <MapPin size={18} className="absolute left-3 top-3 text-slate-400" />
@@ -551,7 +557,7 @@ export default function BookingForm() {
                                                         name="alamat"
                                                         aria-invalid={missingFields.includes('alamat')}
                                                         className="pl-10 min-h-[100px]"
-                                                        placeholder="Masukkan alamat lengkap atau kota asal..."
+                                                        placeholder={t('booking.phAddress')}
                                                         value={formData.alamat}
                                                         onChange={handleChange}
                                                         required
@@ -561,7 +567,7 @@ export default function BookingForm() {
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                                        Tipe Kunjungan
+                                                        {t('booking.fType')}
                                                     </label>
                                                     <select
                                                         name="tipe"
@@ -569,14 +575,14 @@ export default function BookingForm() {
                                                         onChange={handleChange}
                                                         className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none bg-white"
                                                     >
-                                                        <option value="Perorangan">Perorangan</option>
-                                                        <option value="Rombongan">Rombongan / Keluarga</option>
-                                                        <option value="Instansi">Instansi</option>
+                                                        <option value="Perorangan">{t('booking.typeIndividual')}</option>
+                                                        <option value="Rombongan">{t('booking.typeGroup')}</option>
+                                                        <option value="Instansi">{t('booking.typeInstitution')}</option>
                                                     </select>
                                                 </div>
                                                 <div>
                                                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                                                        Metode Pembayaran
+                                                        {t('booking.fPayment')}
                                                     </label>
                                                     <select
                                                         name="payment_method"
@@ -584,8 +590,8 @@ export default function BookingForm() {
                                                         onChange={handleChange}
                                                         className="w-full px-5 py-4 rounded-xl border-2 border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-100 outline-none bg-white"
                                                     >
-                                                        <option value="Cash">Cash (Bayar di Lokasi)</option>
-                                                        <option value="Transfer">Transfer Bank</option>
+                                                        <option value="Cash">{t('booking.payCash')}</option>
+                                                        <option value="Transfer">{t('booking.payTransfer')}</option>
                                                     </select>
                                                 </div>
                                             </div>
@@ -597,13 +603,13 @@ export default function BookingForm() {
                                                     className="bg-blue-50 p-6 rounded-2xl border-2 border-blue-100"
                                                 >
                                                     <p className="text-sm text-blue-800 font-medium mb-4">
-                                                        Silakan transfer ke: <br />
+                                                        {t('booking.transferTo')} <br />
                                                         <strong className="text-lg">
                                                             {BANK_TRANSFER.bank} {BANK_TRANSFER.accountNumber} an. {BANK_TRANSFER.accountHolder}
                                                         </strong>
                                                     </p>
                                                     <Label className="mb-2 block">
-                                                        Upload Bukti Transfer <span className="text-red-500">*</span>
+                                                        {t('booking.fProof')} <span className="text-red-500">*</span>
                                                     </Label>
                                                     <Input
                                                         type="file"
@@ -613,7 +619,7 @@ export default function BookingForm() {
                                                         aria-invalid={Boolean(proofError)}
                                                     />
                                                     <p className="text-xs text-blue-700/80 mt-2">
-                                                        Format JPG, PNG, atau WebP. Maksimal {MAX_PROOF_SIZE_MB} MB.
+                                                        {t('booking.proofHint').replace('{max}', MAX_PROOF_SIZE_MB)}
                                                     </p>
                                                     {proofError && (
                                                         <p className="text-xs text-red-600 font-semibold mt-2 flex items-center gap-1.5">
@@ -632,14 +638,14 @@ export default function BookingForm() {
 
                                             <div>
                                                 <Label className="mb-2 block">
-                                                    Catatan Tambahan (Opsional)
+                                                    {t('booking.fNotes')}
                                                 </Label>
                                                 <Textarea
                                                     name="catatan"
                                                     value={formData.catatan}
                                                     onChange={handleChange}
                                                     className="min-h-[80px]"
-                                                    placeholder="Contoh: Saya membutuhkan pemandu berbahasa Inggris..."
+                                                    placeholder={t('booking.phNotes')}
                                                 />
                                             </div>
                                         </div>
@@ -659,18 +665,18 @@ export default function BookingForm() {
                                             <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
                                                 <CheckCircle size={20} className="text-blue-600" />
                                             </div>
-                                            Konfirmasi Booking
+                                            {t('booking.submit')}
                                         </h3>
                                         <div className="space-y-6">
                                             <div className="bg-slate-50 rounded-2xl p-6 border-2 border-slate-100">
                                                 <h4 className="font-bold text-slate-900 mb-4 text-lg">📋 Ringkasan Booking</h4>
                                                 <div className="space-y-3 text-sm">
                                                     <div className="flex justify-between py-2 border-b border-slate-200">
-                                                        <span className="text-slate-600">Nama</span>
+                                                        <span className="text-slate-600">{t('booking.sumName')}</span>
                                                         <span className="font-semibold text-slate-900">{formData.name}</span>
                                                     </div>
                                                     <div className="flex justify-between py-2 border-b border-slate-200">
-                                                        <span className="text-slate-600">Email</span>
+                                                        <span className="text-slate-600">{t('booking.fEmail')}</span>
                                                         <span className="font-semibold text-slate-900">{formData.email}</span>
                                                     </div>
                                                     <div className="flex justify-between py-2 border-b border-slate-200">
@@ -678,7 +684,7 @@ export default function BookingForm() {
                                                         <span className="font-semibold text-slate-900">{formData.phone}</span>
                                                     </div>
                                                     <div className="flex justify-between py-2 border-b border-slate-200">
-                                                        <span className="text-slate-600">Tanggal</span>
+                                                        <span className="text-slate-600">{t('booking.fDate')}</span>
                                                         <span className="font-semibold text-slate-900">
                                                             {formData.tanggal && new Date(formData.tanggal).toLocaleDateString('id-ID', {
                                                                 weekday: 'long',
@@ -693,18 +699,18 @@ export default function BookingForm() {
                                                         <span className="font-semibold text-slate-900">{formData.jam}</span>
                                                     </div>
                                                     <div className="flex justify-between py-2 border-b border-slate-200">
-                                                        <span className="text-slate-600">Tipe Kunjungan</span>
+                                                        <span className="text-slate-600">{t('booking.fType')}</span>
                                                         <span className="font-semibold text-slate-900">{formData.tipe}</span>
                                                     </div>
                                                     <div className="flex justify-between py-2 border-b border-slate-200">
-                                                        <span className="text-slate-600">Pembayaran</span>
+                                                        <span className="text-slate-600">{t('booking.sumPayment')}</span>
                                                         <span className="font-semibold text-slate-900">
                                                             {formData.payment_method === 'Cash' ? 'Cash (Bayar di Lokasi)' : 'Transfer Bank'}
                                                         </span>
                                                     </div>
                                                     {formData.catatan && (
                                                         <div className="py-2">
-                                                            <span className="text-slate-600 block mb-1">Catatan</span>
+                                                            <span className="text-slate-600 block mb-1">{t('booking.sumNotes')}</span>
                                                             <span className="font-medium text-slate-900">{formData.catatan}</span>
                                                         </div>
                                                     )}
@@ -719,19 +725,19 @@ export default function BookingForm() {
                                                 <ol className="space-y-2 text-sm text-blue-800">
                                                     <li className="flex items-start gap-2">
                                                         <span className="font-bold">1.</span>
-                                                        <span>Klik tombol &ldquo;Konfirmasi Booking&rdquo; di bawah</span>
+                                                        <span>{t('booking.wa1')}</span>
                                                     </li>
                                                     <li className="flex items-start gap-2">
                                                         <span className="font-bold">2.</span>
-                                                        <span>Anda akan diarahkan ke WhatsApp dengan pesan otomatis berisi detail booking</span>
+                                                        <span>{t('booking.wa2')}</span>
                                                     </li>
                                                     <li className="flex items-start gap-2">
                                                         <span className="font-bold">3.</span>
-                                                        <span>Kirim pesan tersebut untuk konfirmasi akhir dengan tim kami</span>
+                                                        <span>{t('booking.wa3')}</span>
                                                     </li>
                                                     <li className="flex items-start gap-2">
                                                         <span className="font-bold">4.</span>
-                                                        <span>Tim kami akan membalas untuk konfirmasi ketersediaan jadwal</span>
+                                                        <span>{t('booking.wa4')}</span>
                                                     </li>
                                                 </ol>
                                             </div>
@@ -750,7 +756,7 @@ export default function BookingForm() {
                                         className="flex-1"
                                     >
                                         <ArrowLeft size={16} className="mr-2" />
-                                        Kembali
+                                        {t('booking.prev')}
                                     </Button>
                                 )}
                                 {currentStep < 3 ? (
@@ -760,7 +766,7 @@ export default function BookingForm() {
                                         onClick={nextStep}
                                         className="flex-1"
                                     >
-                                        Lanjutkan
+                                        {t('booking.next')}
                                         <ArrowRight size={16} className="ml-2" />
                                     </Button>
                                 ) : (
@@ -773,12 +779,12 @@ export default function BookingForm() {
                                         {loading ? (
                                             <>
                                                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                                                Mengirim...
+                                                {t('booking.submitting')}
                                             </>
                                         ) : (
                                             <>
                                                 <CheckCircle size={16} className="mr-2" />
-                                                Konfirmasi Booking
+                                                {t('booking.submit')}
                                             </>
                                         )}
                                     </Button>

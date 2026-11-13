@@ -31,6 +31,13 @@ export const I18nProvider = ({ children }) => {
     }
   }, []);
 
+  // _document.js merender lang="id" sebagai default di server; begitu bahasa
+  // aktif diketahui di klien, atributnya disesuaikan agar pembaca layar dan
+  // mesin pencari tidak salah membaca bahasa halaman.
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
   const changeLanguage = (lang) => {
     setLanguage(lang);
     localStorage.setItem("language", lang);

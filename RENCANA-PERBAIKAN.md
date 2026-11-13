@@ -23,7 +23,7 @@
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | 🟡 2 selesai, T-24 tersisa |
-| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (4/7) |
+| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (5/7) |
 
 ---
 
@@ -741,7 +741,23 @@ Tersisa 8 `react-hooks/immutability` (fungsi fetch dipanggil sebelum dideklarasi
 
 ---
 
-### - [ ] T-29 · Tuntaskan dukungan dua bahasa
+### - [x] T-29 · Tuntaskan dukungan dua bahasa
+
+> **Selesai 13 Nov 2026.** Pemilik memilih **terjemahan saja, tanpa URL per bahasa** — satu URL, bahasa disimpan di localStorage. Konsekuensinya diterima sadar: Google hanya mengindeks versi Indonesia dan `hreflang` tidak dipasang. Pindah ke i18n routing (`/en/...`) tetap mungkin kapan saja; Next 16 masih mendukungnya untuk Pages Router.
+>
+> **Kunci terjemahan: 94 → 170**, dan kedua locale terverifikasi identik strukturnya.
+>
+> **Yang diterjemahkan:** seluruh halaman `/booking` (57 kunci — label, placeholder, opsi select, pesan validasi, langkah WhatsApp, layar sukses), `/blog`, `/blog/[id]`, dan halaman 404.
+>
+> **Tiga hal yang harus dipindah dari level modul** karena `t()` hanya tersedia di dalam komponen: `FIELD_LABELS` dibangun di dalam `BookingForm`, dan `describeBookingError()` kini menerima `t` sebagai argumen.
+>
+> **`timeAgo()` di `Review.jsx`** sebelumnya selalu mengembalikan teks Inggris dan memformat tanggal dengan `'en-US'` bahkan ketika situs berbahasa Indonesia. Kini menerima `t` dan `language`. Format tanggal di kedua halaman blog juga tidak lagi dipaku ke `'id-ID'`.
+>
+> **Atribut `lang`** disesuaikan dari `I18nContext` lewat `document.documentElement.lang`. `_document.js` tetap merender `lang="id"` sebagai default server, yang memang benar. **`og:locale`** di `SEO.jsx` ikut bahasa aktif, dengan `og:locale:alternate` menunjuk bahasa satunya.
+>
+> **Kebijakan privasi ditangani berbeda:** kedua bahasa ditaruh berdampingan dalam konstanta `COPY` di file halamannya, bukan dipecah ke locale JSON. Ini dokumen hukum — paragrafnya panjang dan akan menenggelamkan kunci UI lain, sementara peninjau perlu bisa membandingkan kedua versi berdampingan. Versi Inggris diberi catatan bahwa **versi Indonesia yang berlaku** bila ada perbedaan tafsir.
+>
+> **Diverifikasi:** seluruh 148 pemanggilan `t()` punya kunci yang ada (kunci yang hilang akan tampil mentah sebagai `booking.fName` di halaman — dicek, tidak ada). Build dan lint bersih, `/url-ngawur` tetap 404.
 
 **Temuan:** 23 (Menengah, terverifikasi)
 **Referensi:** `src/pages/booking.js`, `src/pages/blog/*`, `src/components/Review.jsx:54-62`, `src/pages/_document.js:5`

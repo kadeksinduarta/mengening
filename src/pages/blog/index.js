@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
+import { useTranslation } from '@/contexts/I18nContext';
 
 export async function getStaticProps() {
     // Diambil di server supaya daftar artikel ikut ada di HTML yang diterima
@@ -33,9 +34,11 @@ export async function getStaticProps() {
 
 export default function BlogPage({ blogs, loadFailed }) {
     const router = useRouter();
+    const { t, language } = useTranslation();
+    const dateLocale = language === 'en' ? 'en-US' : 'id-ID';
     const [search, setSearch] = useState('');
 
-    const message = loadFailed ? 'Gagal memuat data blog' : '';
+    const message = loadFailed ? t('blog.loadError') : '';
 
     const filteredBlogs = blogs.filter((blog) =>
         blog.title?.toLowerCase().includes(search.toLowerCase())
@@ -61,7 +64,7 @@ export default function BlogPage({ blogs, loadFailed }) {
                             animate={{ opacity: 1, y: 0 }}
                             className="text-4xl md:text-5xl font-bold tracking-tight mb-4"
                         >
-                            Artikel & Berita
+                            {t('blog.title')}
                         </motion.h1>
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
@@ -69,7 +72,7 @@ export default function BlogPage({ blogs, loadFailed }) {
                             transition={{ delay: 0.1 }}
                             className="text-slate-300 text-lg md:text-xl max-w-2xl mx-auto"
                         >
-                            Temukan wawasan terbaru seputar Pura Mengening, ritual Melukat, dan budaya Bali.
+                            {t('blog.subtitle')}
                         </motion.p>
 
                         {/* Search Bar */}
@@ -83,7 +86,7 @@ export default function BlogPage({ blogs, loadFailed }) {
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 z-10" size={20} />
                                 <Input
                                     type="text"
-                                    placeholder="Cari artikel..."
+                                    placeholder={t('blog.searchPh')}
                                     value={search}
                                     onChange={(e) => setSearch(e.target.value)}
                                     className="w-full pl-12 py-6 rounded-full shadow-xl text-slate-800 bg-white border-0 focus-visible:ring-4 focus-visible:ring-blue-500/30"
@@ -121,10 +124,10 @@ export default function BlogPage({ blogs, loadFailed }) {
                                         </div>
                                     )}
                                     <CardContent className="p-5">
-                                        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-2">{blog.category || 'Artikel'}</p>
+                                        <p className="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-2">{blog.category || t('blog.category')}</p>
                                         <h2 className="text-lg font-bold text-slate-900 leading-snug mb-2 line-clamp-2">{blog.title}</h2>
                                         <p className="text-sm text-slate-500 line-clamp-3">{blog.excerpt || blog.content?.replace(/<[^>]*>/g, '').substring(0, 100)}</p>
-                                        <p className="text-xs text-slate-400 mt-3">{new Date(blog.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</p>
+                                        <p className="text-xs text-slate-400 mt-3">{new Date(blog.created_at).toLocaleDateString(dateLocale, { year: 'numeric', month: 'long', day: 'numeric' })}</p>
                                     </CardContent>
                                 </Card>
                             </motion.div>
@@ -134,8 +137,8 @@ export default function BlogPage({ blogs, loadFailed }) {
                     {/* Empty State */}
                     {filteredBlogs.length === 0 && (
                         <div className="text-center py-20 text-slate-500">
-                            <p className="text-xl font-medium">Tidak ada artikel ditemukan</p>
-                            <p className="mt-2 text-sm">Coba kata kunci pencarian lain.</p>
+                            <p className="text-xl font-medium">{t('blog.emptyTitle')}</p>
+                            <p className="mt-2 text-sm">{t('blog.emptyHint')}</p>
                         </div>
                     )}
                 </div>

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { Calendar, User, ArrowLeft, Clock } from 'lucide-react';
 import PublicLayout from '@/components/PublicLayout';
 import { supabase, getImageUrl } from '@/utils/supabase';
+import { useTranslation } from '@/contexts/I18nContext';
 
 export async function getStaticPaths() {
     const { data, error } = await supabase.from('blogs').select('id');
@@ -58,6 +59,8 @@ export async function getStaticProps({ params }) {
 
 export default function BlogDetail({ blog, blogs }) {
     const router = useRouter();
+    const { t, language } = useTranslation();
+    const dateLocale = language === 'en' ? 'en-US' : 'id-ID';
 
     return (
         <>
@@ -84,7 +87,7 @@ export default function BlogDetail({ blog, blogs }) {
                     </div>
                     <div className="relative z-10 w-full max-w-6xl mx-auto px-6 pb-12 pt-32">
                         <button onClick={() => router.push('/blog')} className="inline-flex items-center text-slate-300 hover:text-white mb-6 transition-colors">
-                            <ArrowLeft size={18} className="mr-2" /> Kembali ke Blog
+                            <ArrowLeft size={18} className="mr-2" /> {t('blog.backToList')}
                         </button>
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
@@ -101,7 +104,7 @@ export default function BlogDetail({ blog, blogs }) {
                             <div className="flex items-center gap-2">
                                 <Calendar size={18} className="text-blue-400" />
                                 {blog.published_date
-                                    ? new Date(blog.published_date).toLocaleDateString('id-ID', {
+                                    ? new Date(blog.published_date).toLocaleDateString(dateLocale, {
                                         day: 'numeric',
                                         month: 'long',
                                         year: 'numeric',
@@ -110,7 +113,7 @@ export default function BlogDetail({ blog, blogs }) {
                             </div>
                             <div className="flex items-center gap-2">
                                 <Clock size={18} className="text-blue-400" />
-                                5 min read
+                                {t('blog.readTime')}
                             </div>
                         </div>
                     </div>
@@ -130,7 +133,7 @@ export default function BlogDetail({ blog, blogs }) {
                                 {/* Share / Footer of Article */}
                                 <div className="mt-12 pt-8 border-t border-slate-100">
                                     <p className="text-slate-500 italic text-center">
-                                        Terima kasih telah membaca. Jangan lupa bagikan artikel ini jika bermanfaat!
+                                        {t('blog.thanks')}
                                     </p>
                                 </div>
                             </div>
@@ -141,7 +144,7 @@ export default function BlogDetail({ blog, blogs }) {
                             <div className="bg-white rounded-2xl shadow-sm p-6 border border-slate-100 sticky top-24">
                                 <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
                                     <span className="w-1 h-6 bg-blue-600 rounded-full"></span>
-                                    Artikel Lainnya
+                                    {t('blog.otherArticles')}
                                 </h3>
                                 <div className="space-y-6">
                                     {blogs.map((item) => (
@@ -160,7 +163,7 @@ export default function BlogDetail({ blog, blogs }) {
                                                         {item.title}
                                                     </h4>
                                                     <span className="text-xs text-slate-500 mt-2 block">
-                                                        {new Date(item.published_date || item.created_at).toLocaleDateString('id-ID', { month: 'short', day: 'numeric', year: 'numeric' })}
+                                                        {new Date(item.published_date || item.created_at).toLocaleDateString(dateLocale, { month: 'short', day: 'numeric', year: 'numeric' })}
                                                     </span>
                                                 </div>
                                             </button>
@@ -171,7 +174,7 @@ export default function BlogDetail({ blog, blogs }) {
                                     onClick={() => router.push('/blog')}
                                     className="block w-full mt-6 text-center text-sm font-semibold text-blue-600 py-3 border border-blue-100 rounded-xl hover:bg-blue-50 transition-colors"
                                 >
-                                    Lihat Semua Artikel
+                                    {t('blog.seeAll')}
                                 </button>
                             </div>
                         </aside>

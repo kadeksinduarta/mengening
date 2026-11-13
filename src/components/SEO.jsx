@@ -14,7 +14,7 @@ const SEO = ({
     type = 'website'
 }) => {
     const router = useRouter();
-    const { t } = useTranslation();
+    const { t, language } = useTranslation();
 
     const siteName = SITE_NAME;
     const defaultTitle = t('seo.title');
@@ -97,8 +97,8 @@ const SEO = ({
             <meta property="og:url" content={fullUrl} />
             <meta property="og:type" content={type} />
             <meta property="og:site_name" content={siteName} />
-            <meta property="og:locale" content="id_ID" />
-            <meta property="og:locale:alternate" content="en_US" />
+            <meta property="og:locale" content={language === 'en' ? 'en_US' : 'id_ID'} />
+            <meta property="og:locale:alternate" content={language === 'en' ? 'id_ID' : 'en_US'} />
 
             {/* Twitter */}
             <meta name="twitter:card" content="summary_large_image" />

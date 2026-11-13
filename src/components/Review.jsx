@@ -51,17 +51,23 @@ function initials(name) {
     .join('');
 }
 
-function timeAgo(dateString) {
+// Menerima t dan language: sebelumnya fungsi ini selalu mengembalikan teks
+// Inggris dan memformat tanggal dengan 'en-US', bahkan saat situs berbahasa
+// Indonesia.
+function timeAgo(dateString, t, language) {
   const date = new Date(dateString);
   const diffMs = Date.now() - date.getTime();
   const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  if (diffDays <= 0) return 'Today';
-  if (diffDays === 1) return '1 day ago';
-  if (diffDays < 30) return `${diffDays} days ago`;
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  if (diffDays <= 0) return t('review.today');
+  if (diffDays === 1) return t('review.dayAgo');
+  if (diffDays < 30) return t('review.daysAgo').replace('{n}', diffDays);
+  return date.toLocaleDateString(language === 'en' ? 'en-US' : 'id-ID', {
+    month: 'short',
+    year: 'numeric',
+  });
 }
 
-function ReviewCard({ review }) {
+function ReviewCard({ review, t, language }) {
   return (
     <div className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 flex flex-col gap-4 shrink-0">
       <div className="flex items-start justify-between">
@@ -91,14 +97,14 @@ function ReviewCard({ review }) {
         </div>
         <div className="min-w-0">
           <p className="text-slate-900 font-semibold text-sm truncate">{review.name}</p>
-          <p className="text-slate-400 text-xs">{timeAgo(review.created_at)}</p>
+          <p className="text-slate-400 text-xs">{timeAgo(review.created_at, t, language)}</p>
         </div>
       </div>
     </div>
   );
 }
 
-function ReviewCarousel({ reviews, emptyLabel }) {
+function ReviewCarousel({ reviews, emptyLabel, t, language }) {
   const trackRef = useRef(null);
   const [atStart, setAtStart] = useState(true);
   const [atEnd, setAtEnd] = useState(false);
@@ -140,7 +146,7 @@ function ReviewCarousel({ reviews, emptyLabel }) {
       >
         {reviews.map((review) => (
           <div key={review.id} data-card className="snap-start">
-            <ReviewCard review={review} />
+            <ReviewCard review={review} t={t} language={language} />
           </div>
         ))}
       </div>
@@ -172,7 +178,7 @@ function ReviewCarousel({ reviews, emptyLabel }) {
 }
 
 const Review = () => {
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [rating, setRating] = useState(0);
@@ -371,7 +377,7 @@ const Review = () => {
               ))}
             </div>
           ) : (
-            <ReviewCarousel reviews={reviews} emptyLabel={t('review.emptyState')} />
+            <ReviewCarousel reviews={reviews} emptyLabel={t('review.emptyState')} t={t} language={language} />
           )}
         </motion.div>
       </div>
