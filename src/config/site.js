@@ -25,7 +25,7 @@ export const SITE_NAME = 'Tasya Melukat - Wisata Spiritual Pura Mengening Bali';
 // Format nomor WhatsApp: kode negara tanpa tanda plus dan tanpa nol di depan.
 export const WHATSAPP_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6285857864840';
 export const PHONE_E164 = `+${WHATSAPP_NUMBER}`;
-export const CONTACT_EMAIL = 'info@mengening.com';
+export const CONTACT_EMAIL = 'info.tasya@melukat.com';
 
 export const ADDRESS = {
     street: 'Jalan Tirta No.25M, Sareseda',

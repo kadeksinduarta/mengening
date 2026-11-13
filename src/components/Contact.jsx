@@ -59,7 +59,7 @@ function Contact() {
                 <div>
                   <h4 className="font-semibold text-slate-900 mb-1">{t("contact.emailTitle")}</h4>
                   <a href={`mailto:${CONTACT_EMAIL}`} className="text-slate-600 hover:text-blue-600 transition-colors font-light">
-                    info.tasya@melukat.com
+                    {CONTACT_EMAIL}
                   </a>
                 </div>
               </div>

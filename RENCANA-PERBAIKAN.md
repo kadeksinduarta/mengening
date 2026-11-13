@@ -241,9 +241,13 @@ Label berbunyi "Email / Username" dengan `type="text"`, padahal `signInWithPassw
 
 ### - [ ] T-08 · Benahi domain canonical
 
-> **Progres 13 Nov 2026 — sisi kode selesai, keputusan domain belum.**
+> **Progres 13 Nov 2026 — domain akhirnya teridentifikasi, sisi kode selesai, tinggal perbaiki env di hosting.**
+>
+> Domain yang benar bukan `puramengening.com` melainkan **`https://www.balinesesacredpurification.com`** — terdaftar lewat Hostinger sampai 4 Nov 2027, resolve ke 216.198.79.1, apex mengalihkan ke `www`. Nilai di `.env.local` sudah diperbaiki, memakai `www` karena canonical harus menunjuk URL final, bukan yang mengalihkan.
+>
+> **⚠️ Ada salah ketik di `NEXT_PUBLIC_SITE_URL` yang terpasang di Vercel:** `balinescaredpurification.com` (hilang "esa", *sacred* jadi *scared*) — domain itu **NXDOMAIN**. Akibatnya setiap halaman produksi saat ini memberi tahu Google bahwa versi kanoniknya ada di domain yang tidak eksis. Itu lebih buruk daripada sekadar tidak punya canonical. Perbaiki di Vercel → Settings → Environment Variables lalu **redeploy** — env `NEXT_PUBLIC_*` tertanam saat build, mengubahnya saja tanpa redeploy tidak berpengaruh.
 > Dibuat `src/config/site.js` sebagai satu-satunya sumber kebenaran: `SEO.jsx` dan `sitemap.xml.js` mengimpor dari sana, dan `public/robots.txt` yang statis diganti `src/pages/robots.txt.js` yang dinamis sehingga baris `Sitemap:` ikut otomatis. Tidak ada lagi domain hardcoded di `src/`. `NEXT_PUBLIC_SITE_URL` kini wajib — aplikasi gagal keras bila kosong.
-> **⚠️ Masih memakai `https://puramengening.com` lewat `.env.local`, dan domain itu tetap NXDOMAIN.** Selama belum diganti ke domain yang hidup, canonical dan sitemap masih menunjuk alamat yang tidak ada. Set `NEXT_PUBLIC_SITE_URL` di environment hosting juga, kalau tidak build produksi gagal.
+
 
 **Temuan:** 07 (Tinggi, terverifikasi)
 **Referensi:** `src/components/SEO.jsx:21`, `src/pages/sitemap.xml.js:3`, `public/robots.txt:6`
@@ -677,7 +681,19 @@ Nomor WhatsApp tersebar: `Contact.jsx` menulisnya langsung sementara tempat lain
 
 ---
 
-### - [ ] T-26 · Verifikasi alamat email kontak
+### - [x] T-26 · Verifikasi alamat email kontak
+
+> **Selesai 13 Nov 2026.** Alamat yang benar adalah **`info.tasya@melukat.com`**, bukan `info@mengening.com`. Diverifikasi: `melukat.com` punya MX record Google Workspace dan terdaftar lewat GoDaddy sampai 30 April 2027, jadi domainnya memang bisa menerima email.
+>
+> **Bug yang ikut ketemu, dan ini sudah ada sejak commit `90f36f1`:** tautan email di `Contact.jsx` menampilkan satu alamat tetapi mengirim ke alamat lain.
+>
+> ```jsx
+> <a href="mailto:info@mengening.com">   ← tujuan klik
+>   info.tasya@melukat.com               ← teks yang terlihat
+> </a>
+> ```
+>
+> Pengunjung yang menyalin teksnya dengan tangan mendapat alamat yang benar; yang mengkliknya mengirim ke domain yang bukan milik pemilik situs. Audit awal hanya memeriksa `href`-nya, sehingga ketidakcocokan ini terlewat. Kini keduanya bersumber dari `CONTACT_EMAIL` di config, sehingga tidak bisa lagi berbeda.
 
 **Temuan:** 27 (Menengah, **belum terverifikasi**)
 **Referensi:** `src/components/Contact.jsx:61`
