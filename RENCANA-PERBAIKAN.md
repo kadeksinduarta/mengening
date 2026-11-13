@@ -23,7 +23,7 @@
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | 🟡 2 selesai, T-24 tersisa |
-| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | ⬜ Belum |
+| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (1/7) |
 
 ---
 
@@ -728,7 +728,19 @@ Tersisa 8 `react-hooks/immutability` (fungsi fetch dipanggil sebelum dideklarasi
 
 ---
 
-### - [ ] T-30 · Lengkapi halaman wajib dan security header
+### - [x] T-30 · Lengkapi halaman wajib dan security header
+
+> **Selesai 13 Nov 2026.** Semua diverifikasi pada build produksi.
+>
+> **Security header** di `next.config.mjs`: `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy` mematikan kamera/mikrofon/lokasi. Area `/admin` mendapat tambahan `X-Robots-Tag: noindex, nofollow` dan `Cache-Control: no-store`.
+>
+> **Halaman 404** (`src/pages/404.js`) memakai `PublicLayout` sehingga pengunjung yang tersesat tetap punya navigasi, bukan halaman buntu. Diverifikasi mengembalikan status 404, bukan 200.
+>
+> **Kebijakan privasi** (`src/pages/kebijakan-privasi.js`), disusun dari data yang benar-benar dikumpulkan kode — kolom tabel `bookings` dan `reviews`, bucket `payments`, preferensi bahasa di localStorage — bukan template umum. Pihak ketiga yang disebut hanya yang memang dipakai: Supabase, Vercel, WhatsApp (ringkasan booking dikirim ke sana), dan Google Maps (peta kontak memuat dari server Google sehingga IP pengunjung terkirim). Menyebut UU No. 27/2022 untuk hak akses, perbaikan, penghapusan, dan penarikan persetujuan. Tautan footer disambungkan dan halamannya masuk sitemap.
+>
+> **Tautan "Terms of Service" dihapus**, bukan disambungkan. Syarat layanan memuat hal yang tidak boleh saya karang — kebijakan pembatalan, pengembalian dana, tanggung jawab. Kunci `footer.terms` masih ada di kedua locale, tinggal dipasang kembali bila halamannya dibuat.
+>
+> **Perlu dikonfirmasi pemilik:** (1) retensi bukti transfer tertulis "dihapus setelah pembayaran terverifikasi dan kunjungan selesai" — pastikan itu memang dilakukan; (2) alamat email kontak di halaman ini mengikuti `info@mengening.com`, yang statusnya masih dipertanyakan di T-26.
 
 **Temuan:** 28 (Menengah, terverifikasi) + 18 (bagian footer)
 **Referensi:** `next.config.mjs`, `src/components/Footer.jsx:180-181`

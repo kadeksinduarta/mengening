@@ -5,6 +5,7 @@ const STATIC_ROUTES = [
     { path: '', priority: '1.0', changefreq: 'weekly' },
     { path: '/booking', priority: '0.9', changefreq: 'weekly' },
     { path: '/blog', priority: '0.8', changefreq: 'daily' },
+    { path: '/kebijakan-privasi', priority: '0.3', changefreq: 'yearly' },
 ];
 
 function generateSitemap(blogs) {

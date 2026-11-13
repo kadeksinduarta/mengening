@@ -1,4 +1,5 @@
 import React from "react";
+import Link from "next/link";
 import { useTranslation } from "@/contexts/I18nContext";
 const Footer = () => {
   const { t } = useTranslation();
@@ -57,8 +58,7 @@ const Footer = () => {
             &copy; {new Date().getFullYear()} Tasya Melukat Mengening. {t("footer.rights")}
           </p>
           <div className="flex space-x-6 text-slate-500">
-            <a href="#" className="hover:text-white transition-colors">{t("footer.privacy")}</a>
-            <a href="#" className="hover:text-white transition-colors">{t("footer.terms")}</a>
+            <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">{t("footer.privacy")}</Link>
           </div>
         </div>
       </div>
