@@ -1,6 +1,6 @@
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
-import WhatsappButton from '@/component/WhatsappButton';
+import WhatsappButton from '@/components/WhatsappButton';
 
 // Dipakai semua halaman publik supaya header, footer, dan tombol WhatsApp
 // konsisten. Sebelumnya /booking tidak punya navigasi sama sekali dan halaman

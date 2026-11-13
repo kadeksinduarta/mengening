@@ -1,7 +1,6 @@
 import SEO from '@/components/SEO';
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import BlogCard from '@/component/BlogCard';
 import PublicLayout from '@/components/PublicLayout';
 import { supabase, getImageUrl } from '@/utils/supabase';
 import { motion } from 'framer-motion';

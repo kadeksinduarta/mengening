@@ -23,7 +23,7 @@
 | M3 | Bug yang dilihat pengunjung | Tampilan & navigasi | 6 | Ya | 🟢 Kode selesai, perlu uji visual |
 | M4 | Alur booking & review | Validasi dan moderasi | 6 | Ya | 🟢 Kode selesai, 2 SQL menunggu |
 | M5 | Performa & aset | Gambar, video, bersih-bersih | 3 | Ya | 🟡 2 selesai, T-24 tersisa |
-| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (2/7) |
+| M6 | Kode, i18n, kepatuhan | Utang teknis & legal | 7 | Ya | 🟡 Berjalan (3/7) |
 
 ---
 
@@ -690,7 +690,13 @@ Halaman kontak menampilkan `info@mengening.com` — domain yang berbeda dari `pu
 
 ---
 
-### - [ ] T-27 · Gabungkan dua folder komponen
+### - [x] T-27 · Gabungkan dua folder komponen
+
+> **Selesai 13 Nov 2026.** `WhatsappButton.jsx` dipindahkan ke `src/components/` (lewat `git mv` agar riwayatnya terjaga), impor di `PublicLayout` diperbarui, dan folder `src/component/` sudah tidak ada.
+>
+> **`BlogCard.jsx` dihapus, bukan dipakai kembali.** Ia diimpor di `blog/index.js` tetapi tidak pernah dirender — halaman itu menggambar kartunya sendiri secara inline. Memakai `BlogCard` berarti mengubah tampilan daftar artikel (desainnya jauh berbeda: sudut `2.5rem`, `font-black`, kutipan miring), dan itu perubahan desain yang tidak diminta. Menghapus kode mati adalah pilihan yang tidak mengubah apa pun yang terlihat pengunjung.
+>
+> Efek samping: error lint turun dari 13 ke 11 — `BlogCard.jsx` menyumbang dua `react/no-unescaped-entities`.
 
 **Temuan:** 25 (Menengah, terverifikasi)
 **Referensi:** `src/component/`, `src/components/`, `src/pages/blog/index.js:4,126-138`
