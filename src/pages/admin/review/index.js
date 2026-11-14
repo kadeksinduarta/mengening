@@ -2,40 +2,42 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/utils/supabase';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Plus, Pencil, Trash2, Star, Check, EyeOff, RotateCw, TriangleAlert } from 'lucide-react';
 import {
-    Search, Plus, Edit2, Trash2, Star, Check, EyeOff,
-    MessageSquareQuote, X, AlertCircle
-} from 'lucide-react';
-import { Card } from '@/components/ui/card';
+    AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+    AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle
+} from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
-    Table, TableBody, TableCell, TableHead, TableHeader, TableRow
-} from '@/components/ui/table';
+    Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle
+} from '@/components/ui/sheet';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Textarea } from '@/components/ui/textarea';
+
+const NAME_MAX = 80;
+const MESSAGE_MAX = 600;
 
 function StarPicker({ value, onChange }) {
-    const [hovered, setHovered] = useState(0);
-    const display = hovered || value;
-
     return (
-        <div className="flex items-center gap-1" onMouseLeave={() => setHovered(0)}>
+        <div role="group" aria-label="Rating" className="flex items-center gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
                 <button
                     key={star}
                     type="button"
-                    onMouseEnter={() => setHovered(star)}
                     onClick={() => onChange(star)}
-                    className="p-0.5"
+                    aria-pressed={star === value}
+                    aria-label={`${star} bintang`}
+                    className="flex size-11 items-center justify-center rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-blue-600/40"
                 >
                     <Star
-                        className={`w-6 h-6 transition-colors ${star <= display
-                            ? 'fill-amber-400 text-amber-400'
-                            : 'fill-transparent text-slate-300'
-                            }`}
+                        className={`size-7 ${star <= value ? 'fill-amber-400 text-amber-500' : 'fill-transparent text-slate-400'}`}
                         strokeWidth={1.5}
+                        aria-hidden="true"
                     />
                 </button>
             ))}
@@ -45,16 +47,18 @@ function StarPicker({ value, onChange }) {
 
 function StarDisplay({ rating }) {
     return (
-        <div className="flex items-center gap-0.5">
+        <span className="flex items-center gap-0.5">
             {[1, 2, 3, 4, 5].map((star) => (
                 <Star
                     key={star}
-                    className={`w-3.5 h-3.5 ${star <= rating ? 'fill-amber-400 text-amber-400' : 'fill-transparent text-slate-200'
-                        }`}
+                    size={14}
+                    className={star <= rating ? 'fill-amber-400 text-amber-500' : 'fill-transparent text-slate-300'}
                     strokeWidth={1.5}
+                    aria-hidden="true"
                 />
             ))}
-        </div>
+            <span className="sr-only">{rating} dari 5 bintang</span>
+        </span>
     );
 }
 
@@ -62,24 +66,31 @@ const emptyForm = { name: '', message: '', rating: 0 };
 
 export default function ReviewManagement() {
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
     const [reviews, setReviews] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [pendingOnly, setPendingOnly] = useState(false);
     const [savingId, setSavingId] = useState(null);
+    const [actionError, setActionError] = useState('');
 
-    const [showModal, setShowModal] = useState(false);
+    const [showForm, setShowForm] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [form, setForm] = useState(emptyForm);
     const [formError, setFormError] = useState('');
     const [saving, setSaving] = useState(false);
 
+    const [pendingDelete, setPendingDelete] = useState(null);
+    const [deleting, setDeleting] = useState(false);
+
     const fetchReviews = async () => {
         try {
-            const { data, error } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
-            if (error) throw error;
+            const { data, error: fetchError } = await supabase.from('reviews').select('*').order('created_at', { ascending: false });
+            if (fetchError) throw fetchError;
             setReviews(data || []);
+            setError(false);
         } catch (err) {
             console.error('Error fetching reviews:', err);
+            setError(true);
         } finally {
             setLoading(false);
         }
@@ -94,30 +105,35 @@ export default function ReviewManagement() {
         fetchReviews();
     }, []);
 
+    const retry = () => {
+        setLoading(true);
+        fetchReviews();
+    };
 
-    const openCreateModal = () => {
+    const openCreateForm = () => {
         setEditingId(null);
         setForm(emptyForm);
         setFormError('');
-        setShowModal(true);
+        setShowForm(true);
     };
 
-    const openEditModal = (review) => {
+    const openEditForm = (review) => {
         setEditingId(review.id);
-        setForm({ name: review.name, message: review.message, rating: review.rating });
+        setForm({ name: review.name || '', message: review.message || '', rating: review.rating || 0 });
         setFormError('');
-        setShowModal(true);
+        setShowForm(true);
     };
 
-    const closeModal = () => {
-        if (saving) return;
-        setShowModal(false);
+    const handleFormOpenChange = (open) => {
+        if (!open && saving) return;
+        setShowForm(open);
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        if (saving) return;
         if (!form.name.trim() || !form.message.trim() || form.rating === 0) {
-            setFormError('Nama, pesan, dan rating wajib diisi.');
+            setFormError('Nama, ulasan, dan rating wajib diisi.');
             return;
         }
         setFormError('');
@@ -131,32 +147,32 @@ export default function ReviewManagement() {
             };
 
             if (editingId) {
-                const { data, error } = await supabase
+                const { data, error: updateError } = await supabase
                     .from('reviews')
                     .update(payload)
                     .eq('id', editingId)
                     .select();
-                if (error) throw error;
+                if (updateError) throw updateError;
                 if (!data || data.length === 0) {
                     throw new Error('Perubahan tidak tersimpan. Anda mungkin tidak memiliki izin (RLS) untuk mengubah data ini.');
                 }
                 setReviews((prev) => prev.map((r) => (r.id === editingId ? data[0] : r)));
             } else {
-                const { data, error } = await supabase
+                const { data, error: insertError } = await supabase
                     .from('reviews')
                     .insert(payload)
                     .select();
-                if (error) throw error;
+                if (insertError) throw insertError;
                 if (!data || data.length === 0) {
-                    throw new Error('Review tidak tersimpan. Anda mungkin tidak memiliki izin (RLS) untuk menambah data ini.');
+                    throw new Error('Ulasan tidak tersimpan. Anda mungkin tidak memiliki izin (RLS) untuk menambah data ini.');
                 }
                 setReviews((prev) => [data[0], ...prev]);
             }
 
-            setShowModal(false);
+            setShowForm(false);
         } catch (err) {
             console.error('Error saving review:', err);
-            setFormError(err.message || 'Gagal menyimpan review.');
+            setFormError(err.message || 'Gagal menyimpan ulasan.');
         } finally {
             setSaving(false);
         }
@@ -164,332 +180,354 @@ export default function ReviewManagement() {
 
     const setApproved = async (id, approved) => {
         const previous = reviews;
+        setActionError('');
         setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, approved } : r)));
         setSavingId(id);
 
-        const { error } = await supabase.from('reviews').update({ approved }).eq('id', id);
+        const { error: updateError } = await supabase.from('reviews').update({ approved }).eq('id', id);
 
         setSavingId(null);
-        if (error) {
-            console.error('Gagal mengubah status review:', error.message, error.code);
+        if (updateError) {
+            console.error('Gagal mengubah status review:', updateError.message, updateError.code);
             setReviews(previous);
-            alert('Gagal mengubah status ulasan. Coba lagi.');
+            setActionError('Gagal mengubah status ulasan. Coba lagi.');
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!confirm('Apakah Anda yakin ingin menghapus review ini?')) return;
+    const confirmDelete = async () => {
+        if (!pendingDelete || deleting) return;
+        const { id } = pendingDelete;
+
+        setDeleting(true);
+        setActionError('');
         try {
-            const { data, error } = await supabase.from('reviews').delete().eq('id', id).select();
-            if (error) throw error;
+            const { data, error: deleteError } = await supabase.from('reviews').delete().eq('id', id).select();
+            if (deleteError) throw deleteError;
             if (!data || data.length === 0) {
-                throw new Error('Review tidak terhapus. Anda mungkin tidak memiliki izin (RLS) untuk menghapus data ini.');
+                throw new Error('Ulasan tidak terhapus. Anda mungkin tidak memiliki izin (RLS) untuk menghapus data ini.');
             }
             setReviews((prev) => prev.filter((r) => r.id !== id));
         } catch (err) {
             console.error('Error deleting review:', err);
-            alert(err.message || 'Gagal menghapus review.');
+            setActionError(err.message || 'Gagal menghapus ulasan.');
+        } finally {
+            setDeleting(false);
+            setPendingDelete(null);
         }
     };
 
     const pendingCount = reviews.filter((r) => !r.approved).length;
 
+    const query = searchTerm.trim().toLowerCase();
     const filteredReviews = reviews.filter((r) =>
         (!pendingOnly || !r.approved) &&
-        (r.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.message.toLowerCase().includes(searchTerm.toLowerCase()))
+        (!query ||
+            (r.name || '').toLowerCase().includes(query) ||
+            (r.message || '').toLowerCase().includes(query))
     );
 
     const averageRating = reviews.length
-        ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
-        : '0.0';
+        ? (reviews.reduce((acc, r) => acc + (r.rating || 0), 0) / reviews.length)
+            .toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+        : null;
+
+    const hasFilter = query !== '' || pendingOnly;
+    const clearFilters = () => {
+        setSearchTerm('');
+        setPendingOnly(false);
+    };
 
     return (
-        <AdminLayout title="Reviews">
+        <AdminLayout title="Ulasan">
             <Head>
-                <title>Manage Reviews - Pura Mengening</title>
+                <title>Kelola Ulasan - Pura Mengening</title>
             </Head>
 
-            {/* Header & Actions */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-                <div className="relative flex-1 max-w-md group">
-                    <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors z-10" />
-                    <Input
-                        type="text"
-                        placeholder="Search by name or message..."
-                        className="pl-9 bg-white border-slate-200 focus-visible:ring-blue-600 focus-visible:border-blue-600 rounded-xl font-medium text-slate-700 placeholder:text-slate-400"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div className="flex items-center gap-3 shrink-0">
-                    <button
-                        onClick={() => setPendingOnly((v) => !v)}
-                        className={`inline-flex items-center gap-1.5 px-3.5 h-9 rounded-xl border text-xs font-semibold transition-colors ${pendingOnly
-                            ? 'bg-amber-50 border-amber-200 text-amber-700'
-                            : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}`}
-                    >
-                        Menunggu moderasi
-                        <span className={`px-1.5 py-0.5 rounded font-bold ${pendingCount > 0
-                            ? 'bg-amber-500 text-white'
-                            : 'bg-slate-100 text-slate-400'}`}>
-                            {pendingCount}
-                        </span>
-                    </button>
-                    <div className="hidden sm:flex items-center gap-1.5 px-3.5 h-9 bg-white border border-slate-200 rounded-xl">
-                        <Star size={14} className="fill-amber-400 text-amber-400" />
-                        <span className="text-xs font-bold text-slate-700">{averageRating}</span>
-                        <span className="text-xs text-slate-400">avg / {reviews.length} reviews</span>
+            <div className="space-y-4">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                    <div className="relative flex-1 sm:max-w-md">
+                        <Search
+                            size={16}
+                            aria-hidden="true"
+                            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500"
+                        />
+                        <Input
+                            type="search"
+                            aria-label="Cari ulasan"
+                            placeholder="Cari nama atau isi ulasan"
+                            className="h-11 bg-white pl-9 lg:h-9"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
                     </div>
-                    <button
-                        onClick={openCreateModal}
-                        className="inline-flex items-center justify-center gap-1.5 px-4 h-9 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-semibold shadow-sm transition-colors shrink-0"
-                    >
-                        <Plus size={16} /> Add Review
-                    </button>
+                    <div className="flex items-center gap-2 sm:ml-auto">
+                        <Button
+                            variant={pendingOnly ? 'default' : 'outline'}
+                            aria-pressed={pendingOnly}
+                            onClick={() => setPendingOnly((v) => !v)}
+                            className={`h-11 flex-1 px-3 sm:flex-none lg:h-9 ${pendingOnly ? '' : 'bg-white'}`}
+                        >
+                            Menunggu
+                            <span className="tabular-nums">{loading ? '' : pendingCount}</span>
+                        </Button>
+                        <Button onClick={openCreateForm} className="h-11 flex-1 bg-blue-700 px-4 text-white hover:bg-blue-800 sm:flex-none lg:h-9">
+                            <Plus aria-hidden="true" /> Tambah ulasan
+                        </Button>
+                    </div>
                 </div>
-            </div>
 
-            {/* Reviews Table / Cards */}
-            <Card className="rounded-xl border-slate-200/80 overflow-hidden bg-white shadow-sm">
-                {/* Desktop Table View */}
-                <div className="hidden lg:block overflow-x-auto">
-                    <Table>
-                        <TableHeader>
-                            <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
-                                <TableHead className="font-bold text-slate-500 text-xs py-4">Reviewer</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs py-4">Rating</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs py-4">Message</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs py-4">Date</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs py-4">Status</TableHead>
-                                <TableHead className="font-bold text-slate-500 text-xs py-4 text-right pr-6">Actions</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
+                {actionError && (
+                    <Alert variant="destructive" className="max-w-xl">
+                        <TriangleAlert aria-hidden="true" />
+                        <AlertTitle>Perubahan belum berhasil.</AlertTitle>
+                        <AlertDescription>
+                            <p>{actionError}</p>
+                            <Button variant="outline" onClick={() => setActionError('')} className="mt-3 h-11 px-4 lg:h-9">
+                                Tutup
+                            </Button>
+                        </AlertDescription>
+                    </Alert>
+                )}
+
+                {error && !loading ? (
+                    <Alert variant="destructive" className="max-w-md">
+                        <TriangleAlert aria-hidden="true" />
+                        <AlertTitle>Daftar ulasan belum bisa dimuat.</AlertTitle>
+                        <AlertDescription>
+                            <p>Periksa koneksi internet, lalu coba lagi.</p>
+                            <Button onClick={retry} variant="outline" className="mt-3 h-11 px-4">
+                                <RotateCw aria-hidden="true" /> Coba lagi
+                            </Button>
+                        </AlertDescription>
+                    </Alert>
+                ) : (
+                    <>
+                        {!loading && reviews.length > 0 && (
+                            <p className="text-sm text-slate-600" aria-live="polite">
+                                <span className="tabular-nums">{filteredReviews.length}</span>
+                                {hasFilter && (
+                                    <>
+                                        {' '}dari <span className="tabular-nums">{reviews.length}</span>
+                                    </>
+                                )}{' '}
+                                ulasan
+                                {averageRating && (
+                                    <>
+                                        , rata-rata <span className="tabular-nums">{averageRating}</span> bintang
+                                    </>
+                                )}
+                            </p>
+                        )}
+
+                        <Card className="gap-0 py-0">
                             {loading ? (
-                                [1, 2, 3, 4].map((i) => (
-                                    <TableRow key={i} className="hover:bg-transparent border-b border-slate-100 animate-pulse">
-                                        <TableCell className="py-4"><div className="h-10 w-40 bg-slate-100 rounded-lg"></div></TableCell>
-                                        <TableCell className="py-4"><div className="h-5 w-20 bg-slate-100 rounded-lg"></div></TableCell>
-                                        <TableCell className="py-4"><div className="h-5 w-64 bg-slate-100 rounded-lg"></div></TableCell>
-                                        <TableCell className="py-4"><div className="h-5 w-20 bg-slate-100 rounded-lg"></div></TableCell>
-                                        <TableCell className="py-4"><div className="h-9 w-20 ml-auto bg-slate-100 rounded-lg"></div></TableCell>
-                                    </TableRow>
-                                ))
+                                <ul className="divide-y divide-slate-100" aria-hidden="true">
+                                    {[1, 2, 3, 4].map((i) => (
+                                        <li key={i} className="space-y-3 p-4">
+                                            <Skeleton className="h-4 w-1/3" />
+                                            <Skeleton className="h-3 w-full" />
+                                            <Skeleton className="h-3 w-2/3" />
+                                        </li>
+                                    ))}
+                                </ul>
                             ) : filteredReviews.length > 0 ? (
-                                filteredReviews.map((r) => (
-                                    <TableRow key={r.id} className="border-b border-slate-100/85 hover:bg-slate-50/40 transition-colors">
-                                        <TableCell className="py-4">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-9 h-9 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">
-                                                    {r.name.charAt(0).toUpperCase()}
+                                <ul className="divide-y divide-slate-100">
+                                    {filteredReviews.map((r) => (
+                                        <li key={r.id} className="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:gap-6">
+                                            <div className="min-w-0 flex-1 space-y-1.5">
+                                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                                    <h2 className="truncate text-sm font-semibold text-slate-900">{r.name}</h2>
+                                                    <StarDisplay rating={r.rating} />
+                                                    <span className="text-sm text-slate-600 tabular-nums">
+                                                        {new Date(r.created_at).toLocaleDateString('id-ID', {
+                                                            day: 'numeric', month: 'short', year: 'numeric'
+                                                        })}
+                                                    </span>
+                                                    {r.approved ? (
+                                                        <Badge variant="outline" className="border-emerald-200 bg-emerald-50 text-emerald-800">
+                                                            Tayang
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                                                            Menunggu
+                                                        </Badge>
+                                                    )}
                                                 </div>
-                                                <p className="font-semibold text-slate-800 text-sm">{r.name}</p>
+                                                <p className="line-clamp-3 break-words text-sm text-slate-700">{r.message}</p>
                                             </div>
-                                        </TableCell>
-                                        <TableCell className="py-4"><StarDisplay rating={r.rating} /></TableCell>
-                                        <TableCell className="py-4 max-w-xs">
-                                            <p className="text-sm text-slate-600 truncate">{r.message}</p>
-                                        </TableCell>
-                                        <TableCell className="py-4">
-                                            <span className="text-xs font-medium text-slate-500">
-                                                {new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
-                                            </span>
-                                        </TableCell>
-                                        <TableCell className="py-4">
-                                            {r.approved ? (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200">
-                                                    Tayang
-                                                </span>
-                                            ) : (
-                                                <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
-                                                    Menunggu
-                                                </span>
-                                            )}
-                                        </TableCell>
-                                        <TableCell className="py-4 text-right pr-6">
-                                            <div className="flex items-center justify-end gap-1">
+
+                                            <div className="flex shrink-0 items-center gap-2">
+                                                {r.approved ? (
+                                                    <Button
+                                                        variant="outline"
+                                                        onClick={() => setApproved(r.id, false)}
+                                                        disabled={savingId === r.id}
+                                                        className="h-11 flex-1 px-3 lg:h-9 lg:flex-none"
+                                                    >
+                                                        <EyeOff aria-hidden="true" /> Sembunyikan
+                                                    </Button>
+                                                ) : (
+                                                    <Button
+                                                        onClick={() => setApproved(r.id, true)}
+                                                        disabled={savingId === r.id}
+                                                        className="h-11 flex-1 bg-emerald-700 px-3 text-white hover:bg-emerald-800 lg:h-9 lg:flex-none"
+                                                    >
+                                                        <Check aria-hidden="true" /> Setujui
+                                                    </Button>
+                                                )}
+                                                <Button
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => openEditForm(r)}
+                                                    aria-label={`Edit ulasan dari ${r.name}`}
+                                                    className="size-11 lg:size-9"
+                                                >
+                                                    <Pencil aria-hidden="true" />
+                                                </Button>
                                                 <Button
                                                     variant="ghost"
                                                     size="icon"
-                                                    onClick={() => setApproved(r.id, !r.approved)}
-                                                    disabled={savingId === r.id}
-                                                    title={r.approved ? 'Sembunyikan dari beranda' : 'Setujui dan tayangkan'}
-                                                    className={`h-8 w-8 rounded-lg ${r.approved
-                                                        ? 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'
-                                                        : 'text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50'}`}
+                                                    onClick={() => setPendingDelete(r)}
+                                                    aria-label={`Hapus ulasan dari ${r.name}`}
+                                                    className="size-11 text-red-700 hover:bg-red-50 hover:text-red-800 lg:size-9"
                                                 >
-                                                    {r.approved ? <EyeOff size={14} /> : <Check size={14} />}
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => openEditModal(r)} className="h-8 w-8 hover:bg-slate-100 rounded-lg">
-                                                    <Edit2 size={14} className="text-slate-500" />
-                                                </Button>
-                                                <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 rounded-lg">
-                                                    <Trash2 size={14} />
+                                                    <Trash2 aria-hidden="true" />
                                                 </Button>
                                             </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
+                                        </li>
+                                    ))}
+                                </ul>
                             ) : (
-                                <TableRow>
-                                    <TableCell colSpan={6} className="py-16 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-12 h-12 bg-slate-50 border border-slate-100 rounded-xl flex items-center justify-center text-slate-400">
-                                                <MessageSquareQuote size={20} />
-                                            </div>
-                                            <div>
-                                                <p className="font-semibold text-slate-800 text-sm">No reviews found</p>
-                                                <p className="text-slate-400 text-xs font-medium">Try adjusting your search, or add one manually</p>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
+                                <div className="px-4 py-14 text-center">
+                                    {reviews.length === 0 ? (
+                                        <>
+                                            <p className="text-sm font-semibold text-slate-900">Belum ada ulasan.</p>
+                                            <p className="mt-1 text-sm text-slate-600">
+                                                Ulasan dari tamu muncul di sini untuk dimoderasi. Anda juga bisa menambahkannya sendiri.
+                                            </p>
+                                            <Button onClick={openCreateForm} className="mt-4 h-11 bg-blue-700 px-4 text-white hover:bg-blue-800">
+                                                <Plus aria-hidden="true" /> Tambah ulasan
+                                            </Button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <p className="text-sm font-semibold text-slate-900">
+                                                {query
+                                                    ? 'Tidak ada ulasan yang cocok.'
+                                                    : 'Tidak ada ulasan yang menunggu. Semua sudah dimoderasi.'}
+                                            </p>
+                                            <Button variant="link" onClick={clearFilters} className="mt-1 h-11 text-blue-700">
+                                                Hapus pencarian dan filter
+                                            </Button>
+                                        </>
+                                    )}
+                                </div>
                             )}
-                        </TableBody>
-                    </Table>
-                </div>
-
-                {/* Mobile Card View */}
-                <div className="lg:hidden p-4 space-y-3 bg-slate-50/50">
-                    {loading ? (
-                        [1, 2, 3].map((i) => (
-                            <div key={i} className="h-32 bg-white rounded-xl border border-slate-100 animate-pulse"></div>
-                        ))
-                    ) : filteredReviews.length > 0 ? (
-                        filteredReviews.map((r) => (
-                            <div key={r.id} className="bg-white rounded-xl border border-slate-200/60 p-4 space-y-3 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-9 h-9 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shrink-0">
-                                        {r.name.charAt(0).toUpperCase()}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="font-semibold text-slate-800 text-sm truncate">{r.name}</p>
-                                        <StarDisplay rating={r.rating} />
-                                    </div>
-                                    <span className="text-[10px] text-slate-400 font-medium shrink-0">
-                                        {new Date(r.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                                    </span>
-                                </div>
-                                <p className="text-sm text-slate-600 line-clamp-2">{r.message}</p>
-                                <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-1.5">
-                                    <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded-md border ${r.approved
-                                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                                        : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
-                                        {r.approved ? 'Tayang' : 'Menunggu'}
-                                    </span>
-                                    <div className="flex items-center gap-1.5">
-                                    <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        onClick={() => setApproved(r.id, !r.approved)}
-                                        disabled={savingId === r.id}
-                                        className={`w-8 h-8 rounded-lg bg-slate-50 border border-slate-100 ${r.approved ? 'text-slate-500' : 'text-emerald-600'}`}
-                                    >
-                                        {r.approved ? <EyeOff size={14} /> : <Check size={14} />}
-                                    </Button>
-                                    <Button variant="ghost" size="icon" onClick={() => openEditModal(r)} className="w-8 h-8 rounded-lg bg-slate-50 text-slate-500 border border-slate-100"><Edit2 size={14} /></Button>
-                                    <Button variant="ghost" size="icon" onClick={() => handleDelete(r.id)} className="w-8 h-8 rounded-lg bg-slate-50 text-red-500 border border-slate-100"><Trash2 size={14} /></Button>
-                                    </div>
-                                </div>
-                            </div>
-                        ))
-                    ) : (
-                        <div className="py-12 text-center bg-white rounded-xl border border-slate-200/60 shadow-sm">
-                            <p className="font-semibold text-slate-400 text-xs">No reviews found</p>
-                        </div>
-                    )}
-                </div>
-            </Card>
-
-            {/* Create / Edit Modal */}
-            <AnimatePresence>
-                {showModal && (
-                    <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[60]"
-                            onClick={closeModal}
-                        ></motion.div>
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95, y: 15 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: 15 }}
-                            transition={{ duration: 0.25, ease: "easeOut" }}
-                            className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[92%] max-w-md bg-white rounded-2xl shadow-xl z-[70] overflow-hidden border border-slate-200/80 flex flex-col font-sans"
-                        >
-                            <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-                                <h3 className="text-base font-bold text-slate-900">
-                                    {editingId ? 'Edit Review' : 'Add Review'}
-                                </h3>
-                                <button
-                                    onClick={closeModal}
-                                    className="p-1.5 hover:bg-slate-100 rounded-lg transition-colors text-slate-400"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-
-                            <form onSubmit={handleSubmit} className="p-6 space-y-4 overflow-y-auto">
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Name</Label>
-                                    <Input
-                                        value={form.name}
-                                        onChange={(e) => setForm({ ...form, name: e.target.value })}
-                                        placeholder="Reviewer's name"
-                                        className="rounded-xl border-slate-200"
-                                        maxLength={80}
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Message</Label>
-                                    <Textarea
-                                        value={form.message}
-                                        onChange={(e) => setForm({ ...form, message: e.target.value })}
-                                        placeholder="Review message"
-                                        rows={4}
-                                        className="rounded-xl border-slate-200 resize-none"
-                                        maxLength={600}
-                                    />
-                                </div>
-
-                                <div className="space-y-1.5">
-                                    <Label className="text-xs font-bold text-slate-500 uppercase tracking-wide">Rating</Label>
-                                    <StarPicker value={form.rating} onChange={(rating) => setForm({ ...form, rating })} />
-                                </div>
-
-                                {formError && (
-                                    <div className="flex items-center gap-2 text-red-600 text-xs bg-red-50 border border-red-100 rounded-xl px-3.5 py-2.5">
-                                        <AlertCircle size={14} className="shrink-0" />
-                                        <span>{formError}</span>
-                                    </div>
-                                )}
-
-                                <div className="flex items-center justify-end gap-2.5 pt-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={closeModal}
-                                        className="px-4 font-semibold text-xs rounded-xl border-slate-200"
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        type="submit"
-                                        disabled={saving}
-                                        className="px-4 bg-blue-600 hover:bg-blue-500 font-semibold text-xs rounded-xl disabled:opacity-50"
-                                    >
-                                        {saving ? 'Saving...' : editingId ? 'Save Changes' : 'Add Review'}
-                                    </Button>
-                                </div>
-                            </form>
-                        </motion.div>
+                        </Card>
                     </>
                 )}
-            </AnimatePresence>
+            </div>
+
+            {/* Tambah / ubah ulasan */}
+            <Sheet open={showForm} onOpenChange={handleFormOpenChange}>
+                <SheetContent side="right" className="w-full gap-0 sm:max-w-md">
+                    <SheetHeader className="border-b border-slate-100 p-4">
+                        <SheetTitle className="text-lg font-semibold text-slate-900">
+                            {editingId ? 'Ubah ulasan' : 'Tambah ulasan'}
+                        </SheetTitle>
+                        <SheetDescription className="text-slate-600">
+                            {editingId
+                                ? 'Perubahan langsung tampil bila ulasan sudah tayang.'
+                                : 'Ulasan baru menunggu persetujuan sebelum tampil di situs.'}
+                        </SheetDescription>
+                    </SheetHeader>
+
+                    <form onSubmit={handleSubmit} className="flex min-h-0 flex-1 flex-col">
+                        <div className="flex-1 space-y-5 overflow-y-auto p-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="review-name" className="text-sm font-medium text-slate-900">Nama</Label>
+                                <Input
+                                    id="review-name"
+                                    value={form.name}
+                                    onChange={(e) => setForm({ ...form, name: e.target.value })}
+                                    maxLength={NAME_MAX}
+                                    autoComplete="off"
+                                    className="h-11 lg:h-9"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="review-message" className="text-sm font-medium text-slate-900">Isi ulasan</Label>
+                                <Textarea
+                                    id="review-message"
+                                    value={form.message}
+                                    onChange={(e) => setForm({ ...form, message: e.target.value })}
+                                    rows={5}
+                                    maxLength={MESSAGE_MAX}
+                                    className="resize-none"
+                                />
+                                <p className="text-right text-sm text-slate-600 tabular-nums">
+                                    {form.message.length}/{MESSAGE_MAX}
+                                </p>
+                            </div>
+
+                            <div className="space-y-1">
+                                <p className="text-sm font-medium text-slate-900">Rating</p>
+                                <StarPicker value={form.rating} onChange={(rating) => setForm({ ...form, rating })} />
+                            </div>
+
+                            {formError && (
+                                <Alert variant="destructive">
+                                    <TriangleAlert aria-hidden="true" />
+                                    <AlertTitle>{formError}</AlertTitle>
+                                </Alert>
+                            )}
+                        </div>
+
+                        <SheetFooter className="flex-row justify-end gap-2 border-t border-slate-100 p-4">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => handleFormOpenChange(false)}
+                                disabled={saving}
+                                className="h-11 px-4"
+                            >
+                                Batal
+                            </Button>
+                            <Button type="submit" disabled={saving} className="h-11 bg-blue-700 px-4 text-white hover:bg-blue-800">
+                                {saving ? 'Menyimpan…' : editingId ? 'Simpan perubahan' : 'Tambah ulasan'}
+                            </Button>
+                        </SheetFooter>
+                    </form>
+                </SheetContent>
+            </Sheet>
+
+            {/* Konfirmasi hapus */}
+            <AlertDialog open={pendingDelete !== null} onOpenChange={(open) => !open && !deleting && setPendingDelete(null)}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Hapus ulasan ini?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Ulasan dari {pendingDelete?.name} akan dihapus permanen dan tidak bisa dikembalikan.
+                            Bila hanya ingin menyembunyikannya dari situs, pilih Sembunyikan.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel disabled={deleting} className="h-11 lg:h-9">Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                            variant="destructive"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                confirmDelete();
+                            }}
+                            disabled={deleting}
+                            className="h-11 lg:h-9"
+                        >
+                            {deleting ? 'Menghapus…' : 'Hapus ulasan'}
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </AdminLayout>
     );
 }

@@ -1,182 +1,569 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Head from 'next/head';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { motion } from 'framer-motion';
-import { Users, FileText, Calendar, ArrowRight, MoreVertical, Clock } from 'lucide-react';
 import Link from 'next/link';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { supabase } from '@/utils/supabase';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatWhatsAppNumber, parseTanggal, toISODate } from '@/utils/booking';
+import { ArrowRight, MessageCircle, Star, RotateCw, PenLine, TriangleAlert } from 'lucide-react';
+import { id as idLocale } from 'react-day-picker/locale';
+import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const QUEUE_LIMIT = 5;
+const REVIEW_LIMIT = 3;
+const FETCH_LIMIT = 1000;
+
+const STATUS_META = {
+    pending: { label: 'Menunggu', color: '#f59e0b', badge: 'border-amber-200 bg-amber-50 text-amber-800' },
+    confirmed: { label: 'Dikonfirmasi', color: '#155dfc', badge: 'border-blue-200 bg-blue-50 text-blue-800' },
+    done: { label: 'Selesai', color: '#009966', badge: 'border-emerald-200 bg-emerald-50 text-emerald-800' },
+    cancelled: { label: 'Dibatalkan', color: '#90a1b9', badge: 'border-slate-200 bg-slate-100 text-slate-700' },
+};
+const STATUS_ORDER = ['pending', 'confirmed', 'done', 'cancelled'];
+
+const STATUS_CHART_CONFIG = Object.fromEntries(
+    STATUS_ORDER.map((key) => [key, { label: STATUS_META[key].label, color: STATUS_META[key].color }])
+);
+const MONTH_CHART_CONFIG = { total: { label: 'Sesi', color: '#155dfc' } };
+
+const ROW_LINK =
+    'hover:bg-slate-50 outline-none focus-visible:bg-slate-50 focus-visible:ring-3 focus-visible:ring-inset focus-visible:ring-blue-600/40';
+
+// Titik kecil di bawah angka tanggal yang punya sesi.
+const SESSION_DOT =
+    'relative after:absolute after:bottom-1 after:left-1/2 after:size-1 after:-translate-x-1/2 after:rounded-full after:bg-blue-600';
+
+const formatTanggal = (value, today) => {
+    const date = parseTanggal(value);
+    if (!date || Number.isNaN(date.getTime())) return '-';
+
+    const diffDays = Math.round((date - parseTanggal(today)) / 86400000);
+    if (diffDays === 0) return 'Hari ini';
+    if (diffDays === 1) return 'Besok';
+
+    return date.toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short' });
+};
+
+const statusOf = (booking) => booking.status || 'pending';
+
+function SectionCard({ title, count, href, linkLabel, description, children }) {
+    return (
+        <Card className="gap-0 py-0">
+            <CardHeader className="border-b border-slate-100 py-3">
+                <CardTitle className="text-base font-semibold text-slate-900">
+                    {title}
+                    {count > 0 && (
+                        <span className="ml-2 text-sm font-medium text-slate-600 tabular-nums">{count}</span>
+                    )}
+                </CardTitle>
+                {description && <p className="text-sm text-slate-600">{description}</p>}
+                {href && (
+                    <CardAction>
+                        <Button asChild variant="link" size="sm" className="h-11 px-1 text-blue-700">
+                            <Link href={href}>
+                                {linkLabel}
+                                <ArrowRight aria-hidden="true" />
+                            </Link>
+                        </Button>
+                    </CardAction>
+                )}
+            </CardHeader>
+            <CardContent className="px-0">{children}</CardContent>
+        </Card>
+    );
+}
+
+function SkeletonRows({ count }) {
+    return (
+        <ul className="divide-y divide-slate-100" aria-hidden="true">
+            {Array.from({ length: count }, (_, i) => (
+                <li key={i} className="h-[72px] space-y-2 px-4 py-3">
+                    <Skeleton className="h-4 w-1/3" />
+                    <Skeleton className="h-3 w-1/2" />
+                </li>
+            ))}
+        </ul>
+    );
+}
+
+function EmptyRow({ children }) {
+    return <p className="px-4 py-6 text-sm text-slate-600">{children}</p>;
+}
+
+function StatTile({ label, value, caption, loading }) {
+    return (
+        <Card size="sm" className="gap-1">
+            <CardContent className="space-y-1">
+                <p className="text-sm text-slate-600">{label}</p>
+                {loading ? (
+                    <Skeleton className="h-8 w-16" />
+                ) : (
+                    <p className="text-2xl font-semibold text-slate-900 tabular-nums">{value}</p>
+                )}
+                <p className="text-sm text-slate-600">{caption}</p>
+            </CardContent>
+        </Card>
+    );
+}
+
+function BookingRow({ booking, today, showDate = true }) {
+    const status = statusOf(booking);
+    const meta = STATUS_META[status];
+
+    return (
+        <li className="flex items-stretch">
+            <Link
+                href="/admin/booking"
+                className={`flex min-w-0 flex-1 flex-col justify-center gap-1 px-4 py-3 ${ROW_LINK}`}
+            >
+                <span className="truncate text-sm font-semibold text-slate-900">{booking.name}</span>
+                <span className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-slate-600">
+                    <span className="tabular-nums">
+                        {showDate ? formatTanggal(booking.tanggal, today) : ''}
+                        {showDate && booking.jam ? ', ' : ''}
+                        {booking.jam || ''}
+                    </span>
+                    {booking.tipe && <span>· {booking.tipe}</span>}
+                    {meta && status !== 'confirmed' && (
+                        <Badge variant="outline" className={meta.badge}>
+                            {meta.label}
+                        </Badge>
+                    )}
+                </span>
+            </Link>
+            {booking.phone && (
+                <a
+                    href={`https://wa.me/${formatWhatsAppNumber(booking.phone)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label={`Chat WhatsApp ${booking.name}`}
+                    className={`flex w-14 shrink-0 items-center justify-center border-l border-slate-100 text-slate-600 hover:text-emerald-700 ${ROW_LINK}`}
+                >
+                    <MessageCircle size={20} aria-hidden="true" />
+                </a>
+            )}
+        </li>
+    );
+}
+
+function ReviewRow({ review }) {
+    return (
+        <li>
+            <Link href="/admin/review" className={`block px-4 py-3 ${ROW_LINK}`}>
+                <span className="flex items-center justify-between gap-3">
+                    <span className="truncate text-sm font-semibold text-slate-900">{review.name}</span>
+                    <span className="flex shrink-0 items-center gap-1 text-sm text-slate-600 tabular-nums">
+                        <Star size={14} className="fill-amber-400 text-amber-400" aria-hidden="true" />
+                        <span>
+                            {review.rating}
+                            <span className="sr-only"> dari 5</span>
+                        </span>
+                    </span>
+                </span>
+                <span className="mt-1 line-clamp-2 text-sm text-slate-600">{review.message}</span>
+            </Link>
+        </li>
+    );
+}
 
 export default function AdminDashboard() {
     const [loading, setLoading] = useState(true);
-    const [currentTime, setCurrentTime] = useState('');
-    const [data, setData] = useState({
-        bookings_count: 0,
-        blogs_count: 0,
-        recent_bookings: []
-    });
+    const [error, setError] = useState(false);
+    const [today, setToday] = useState('');
+    const [selectedDate, setSelectedDate] = useState(undefined);
+    const [bookings, setBookings] = useState([]);
+    const [reviews, setReviews] = useState([]);
+    const [blogsCount, setBlogsCount] = useState(0);
 
-    const fetchStats = async () => {
+    const fetchDashboard = async () => {
         try {
-            setLoading(true);
-            const [{ count: bookingsCount }, { count: blogsCount }, { data: recentBookings }] = await Promise.all([
-                supabase.from('bookings').select('*', { count: 'exact', head: true }),
+            const [bookingsRes, reviewsRes, blogsRes] = await Promise.all([
+                supabase
+                    .from('bookings')
+                    .select('id, name, phone, tipe, tanggal, jam, status')
+                    .order('tanggal', { ascending: true })
+                    .limit(FETCH_LIMIT),
+                supabase
+                    .from('reviews')
+                    .select('id, name, rating, message, approved')
+                    .order('created_at', { ascending: false })
+                    .limit(FETCH_LIMIT),
                 supabase.from('blogs').select('*', { count: 'exact', head: true }),
-                supabase.from('bookings').select('*').order('created_at', { ascending: false }).limit(3)
             ]);
 
-            setData({
-                bookings_count: bookingsCount || 0,
-                blogs_count: blogsCount || 0,
-                recent_bookings: recentBookings || []
-            });
+            const failed = [bookingsRes, reviewsRes, blogsRes].find((result) => result.error);
+            if (failed) throw failed.error;
+
+            setBookings(bookingsRes.data || []);
+            setReviews(reviewsRes.data || []);
+            setBlogsCount(blogsRes.count || 0);
+            setError(false);
         } catch (err) {
-            console.error('Error fetching stats:', err);
+            console.error('Error fetching dashboard:', err);
+            setError(true);
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        // Jam lokal hanya ada di browser. Dibaca setelah mount, bukan saat
-        // render, supaya HTML server dan klien tidak berbeda.
+        // Tanggal lokal hanya ada di browser, jadi dibaca setelah mount supaya
+        // HTML server dan klien tidak berbeda.
+        const now = new Date();
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setCurrentTime(new Date().toLocaleTimeString('id-ID'));
-        fetchStats();
+        setToday(toISODate(now));
+        setSelectedDate(now);
+        fetchDashboard();
     }, []);
 
+    const retry = () => {
+        setLoading(true);
+        fetchDashboard();
+    };
 
-    const stats = [
-        { title: 'Total Bookings', value: data.bookings_count, icon: Users, color: 'text-emerald-500', bgColor: 'bg-emerald-500' },
-        { title: 'Total Articles', value: data.blogs_count, icon: FileText, color: 'text-rose-600', bgColor: 'bg-rose-600' },
-    ];
+    const stats = useMemo(() => {
+        const pendingBookings = bookings.filter((b) => statusOf(b) === 'pending');
+        const activeBookings = bookings.filter((b) => statusOf(b) !== 'cancelled');
+        const pendingReviews = reviews.filter((r) => !r.approved);
+        const approvedReviews = reviews.filter((r) => r.approved && r.rating);
+
+        const monthKey = today.slice(0, 7);
+        const sessionsThisMonth = activeBookings.filter((b) => (b.tanggal || '').startsWith(monthKey)).length;
+
+        const averageRating = approvedReviews.length
+            ? approvedReviews.reduce((sum, r) => sum + Number(r.rating), 0) / approvedReviews.length
+            : null;
+
+        const statusData = STATUS_ORDER.map((key) => ({
+            status: key,
+            count: bookings.filter((b) => statusOf(b) === key).length,
+            fill: STATUS_META[key].color,
+        })).filter((row) => row.count > 0);
+
+        // Enam bulan: tiga yang lalu, bulan ini, dan dua bulan ke depan.
+        const base = today ? parseTanggal(today) : new Date();
+        const monthData = Array.from({ length: 6 }, (_, i) => {
+            const date = new Date(base.getFullYear(), base.getMonth() - 3 + i, 1);
+            const key = toISODate(date).slice(0, 7);
+            return {
+                label: date.toLocaleDateString('id-ID', { month: 'short' }),
+                full: date.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' }),
+                total: activeBookings.filter((b) => (b.tanggal || '').startsWith(key)).length,
+            };
+        });
+
+        return {
+            pendingBookings,
+            pendingReviews,
+            sessionsThisMonth,
+            averageRating,
+            approvedReviewsCount: approvedReviews.length,
+            statusData,
+            monthData,
+        };
+    }, [bookings, reviews, today]);
+
+    const sessionDates = useMemo(() => {
+        const seen = new Set();
+        return bookings
+            .filter((b) => statusOf(b) !== 'cancelled' && b.tanggal)
+            .filter((b) => {
+                const key = String(b.tanggal).slice(0, 10);
+                if (seen.has(key)) return false;
+                seen.add(key);
+                return true;
+            })
+            .map((b) => parseTanggal(b.tanggal))
+            .filter((date) => date && !Number.isNaN(date.getTime()));
+    }, [bookings]);
+
+    const selectedKey = selectedDate ? toISODate(selectedDate) : '';
+    const dayAgenda = bookings
+        .filter((b) => statusOf(b) !== 'cancelled' && String(b.tanggal || '').slice(0, 10) === selectedKey)
+        .sort((a, b) => String(a.jam || '').localeCompare(String(b.jam || '')));
+
+    const statusTotal = stats.statusData.reduce((sum, row) => sum + row.count, 0);
+    const queueBookings = stats.pendingBookings.slice(0, QUEUE_LIMIT);
+    const queueReviews = stats.pendingReviews.slice(0, REVIEW_LIMIT);
 
     return (
-        <AdminLayout title="Home">
+        <AdminLayout title="Beranda">
             <Head>
                 <title>Dashboard Admin - Pura Mengening</title>
             </Head>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                {/* Left Column: Stats and Activities */}
-                <div className="lg:col-span-2 space-y-6 lg:space-y-8">
-                    {/* Summary Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-                        {stats.map((stat, index) => (
-                            <motion.div
-                                key={stat.title}
-                                initial={{ opacity: 0, y: 15 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ delay: index * 0.1, duration: 0.4 }}
-                            >
-                                <Card className="hover:shadow-md hover:border-slate-300 transition-all duration-200 rounded-2xl border-slate-200/80 bg-white">
-                                    <CardContent className="p-6 flex items-center justify-between">
-                                        <div className="space-y-1">
-                                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{stat.title}</p>
-                                            <p className="text-3xl font-black text-slate-900">{stat.value}</p>
-                                        </div>
-                                        <div className={`${stat.bgColor} p-3.5 rounded-xl text-white shadow-md shadow-current/10 shrink-0`}>
-                                            <stat.icon size={22} />
-                                        </div>
-                                    </CardContent>
-                                    <CardFooter className="px-6 py-4 border-t border-slate-100 bg-slate-50/50 rounded-b-2xl flex items-center justify-between">
-                                        <Link href={stat.title.includes('Bookings') ? '/admin/booking' : '/admin/blog'} className="text-xs font-bold text-slate-500 hover:text-blue-600 transition-colors uppercase tracking-wider">
-                                            View details
-                                        </Link>
-                                        <ArrowRight size={14} className="text-slate-400" />
-                                    </CardFooter>
-                                </Card>
-                            </motion.div>
-                        ))}
+            {error && !loading ? (
+                <Alert variant="destructive" className="max-w-md">
+                    <TriangleAlert aria-hidden="true" />
+                    <AlertTitle>Data dashboard belum bisa dimuat.</AlertTitle>
+                    <AlertDescription>
+                        <p>Periksa koneksi internet, lalu coba lagi.</p>
+                        <Button onClick={retry} variant="outline" className="mt-3 h-11 px-4">
+                            <RotateCw aria-hidden="true" /> Coba lagi
+                        </Button>
+                    </AlertDescription>
+                </Alert>
+            ) : (
+                <div className="space-y-6">
+                    <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+                        <p className="text-sm text-slate-600">
+                            <span className="tabular-nums">{loading ? '-' : blogsCount}</span> artikel di blog
+                        </p>
+                        <Button asChild variant="link" className="h-11 px-1 text-blue-700">
+                            <Link href="/admin/blog/create">
+                                <PenLine aria-hidden="true" />
+                                Tulis artikel baru
+                            </Link>
+                        </Button>
                     </div>
 
-                    {/* Activity Section */}
-                    <div className="space-y-4">
-                        <div>
-                            <h3 className="text-lg font-bold text-slate-900">Recent Bookings</h3>
-                            <p className="text-slate-400 text-xs font-medium">Latest Melukat ritual booking registrations</p>
+                    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+                        <StatTile
+                            label="Total booking"
+                            value={bookings.length}
+                            caption="sejak awal"
+                            loading={loading}
+                        />
+                        <StatTile
+                            label="Menunggu konfirmasi"
+                            value={stats.pendingBookings.length}
+                            caption="perlu dibalas"
+                            loading={loading}
+                        />
+                        <StatTile
+                            label="Sesi bulan ini"
+                            value={stats.sessionsThisMonth}
+                            caption="tanpa yang dibatalkan"
+                            loading={loading}
+                        />
+                        <StatTile
+                            label="Rata-rata rating"
+                            value={stats.averageRating === null ? '-' : stats.averageRating.toFixed(1)}
+                            caption={`dari ${stats.approvedReviewsCount} ulasan tayang`}
+                            loading={loading}
+                        />
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                        <div className="space-y-6 lg:col-span-3">
+                            <SectionCard
+                                title="Booking menunggu konfirmasi"
+                                count={stats.pendingBookings.length}
+                                href="/admin/booking"
+                                linkLabel="Semua booking"
+                            >
+                                {loading ? (
+                                    <SkeletonRows count={3} />
+                                ) : queueBookings.length > 0 ? (
+                                    <>
+                                        <ul className="divide-y divide-slate-100">
+                                            {queueBookings.map((booking) => (
+                                                <BookingRow key={booking.id} booking={booking} today={today} />
+                                            ))}
+                                        </ul>
+                                        {stats.pendingBookings.length > QUEUE_LIMIT && (
+                                            <p className="border-t border-slate-100 px-4 py-3 text-sm text-slate-600">
+                                                Dan {stats.pendingBookings.length - QUEUE_LIMIT} booking lain di halaman Booking.
+                                            </p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <EmptyRow>Tidak ada booking yang menunggu. Semua sudah ditangani.</EmptyRow>
+                                )}
+                            </SectionCard>
+
+                            <SectionCard
+                                title="Ulasan menunggu persetujuan"
+                                count={stats.pendingReviews.length}
+                                href="/admin/review"
+                                linkLabel="Semua ulasan"
+                            >
+                                {loading ? (
+                                    <SkeletonRows count={2} />
+                                ) : queueReviews.length > 0 ? (
+                                    <>
+                                        <ul className="divide-y divide-slate-100">
+                                            {queueReviews.map((review) => (
+                                                <ReviewRow key={review.id} review={review} />
+                                            ))}
+                                        </ul>
+                                        {stats.pendingReviews.length > REVIEW_LIMIT && (
+                                            <p className="border-t border-slate-100 px-4 py-3 text-sm text-slate-600">
+                                                Dan {stats.pendingReviews.length - REVIEW_LIMIT} ulasan lain di halaman Ulasan.
+                                            </p>
+                                        )}
+                                    </>
+                                ) : (
+                                    <EmptyRow>Tidak ada ulasan yang perlu dimoderasi.</EmptyRow>
+                                )}
+                            </SectionCard>
                         </div>
 
-                        <Card className="rounded-2xl border-slate-200/80 bg-white overflow-hidden">
-                            <CardContent className="p-4 space-y-3">
-                                {loading ? (
-                                    [1, 2, 3].map(i => (
-                                        <div key={i} className="h-16 w-full bg-slate-50 animate-pulse rounded-xl"></div>
-                                    ))
-                                ) : data.recent_bookings.length > 0 ? (
-                                    data.recent_bookings.map((booking) => (
-                                        <div key={booking.id} className="flex items-center justify-between p-4 bg-slate-50/40 hover:bg-slate-50/80 border border-slate-100 hover:border-slate-200 rounded-xl group transition-all duration-200">
-                                            <div className="flex items-center gap-4 min-w-0">
-                                                <div className="w-10 h-10 bg-blue-50 border border-blue-100 text-blue-600 rounded-lg flex items-center justify-center font-bold text-sm shrink-0 uppercase">
-                                                    {booking.name.charAt(0)}
-                                                </div>
-                                                <div className="min-w-0">
-                                                    <p className="font-semibold text-slate-800 text-sm truncate max-w-[150px] sm:max-w-none">
-                                                        {booking.name}
-                                                    </p>
-                                                    <div className="flex items-center gap-2 mt-0.5">
-                                                        <Badge variant="secondary" className="text-[9px] px-1.5 py-0 bg-slate-100 text-slate-600 border-none font-semibold">
-                                                            {booking.tipe}
-                                                        </Badge>
-                                                        <span className="text-[10px] text-slate-400 font-medium">
-                                                            {new Date(booking.tanggal).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
-                                                        </span>
-                                                    </div>
+                        <div className="lg:col-span-2">
+                            <SectionCard title="Kalender sesi" description="Titik biru menandai tanggal yang punya sesi.">
+                                <div className="px-2 pt-2">
+                                    <Calendar
+                                        mode="single"
+                                        locale={idLocale}
+                                        selected={selectedDate}
+                                        onSelect={(date) => date && setSelectedDate(date)}
+                                        modifiers={{ hasSession: sessionDates }}
+                                        modifiersClassNames={{ hasSession: SESSION_DOT }}
+                                        className="w-full p-0 [--cell-size:--spacing(10)]"
+                                        classNames={{ root: 'w-full' }}
+                                    />
+                                </div>
+                                <div className="mt-2 border-t border-slate-100">
+                                    <h3 className="px-4 pt-3 text-sm font-semibold text-slate-900">
+                                        {selectedDate
+                                            ? selectedDate.toLocaleDateString('id-ID', {
+                                                  weekday: 'long',
+                                                  day: 'numeric',
+                                                  month: 'long',
+                                              })
+                                            : 'Pilih tanggal'}
+                                    </h3>
+                                    {loading ? (
+                                        <SkeletonRows count={1} />
+                                    ) : dayAgenda.length > 0 ? (
+                                        <ul className="mt-1 divide-y divide-slate-100">
+                                            {dayAgenda.map((booking) => (
+                                                <BookingRow
+                                                    key={booking.id}
+                                                    booking={booking}
+                                                    today={today}
+                                                    showDate={false}
+                                                />
+                                            ))}
+                                        </ul>
+                                    ) : (
+                                        <EmptyRow>Tidak ada sesi pada tanggal ini.</EmptyRow>
+                                    )}
+                                </div>
+                            </SectionCard>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                        <div className="lg:col-span-3">
+                            <SectionCard title="Sesi per bulan" description="Tiga bulan lalu sampai dua bulan ke depan, tanpa yang dibatalkan.">
+                                <div className="px-4 pt-4">
+                                    {loading ? (
+                                        <Skeleton className="h-56 w-full" />
+                                    ) : (
+                                        <>
+                                            <ChartContainer config={MONTH_CHART_CONFIG} className="h-56 w-full">
+                                                <BarChart data={stats.monthData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
+                                                    <CartesianGrid vertical={false} stroke="#e2e8f0" />
+                                                    <XAxis
+                                                        dataKey="label"
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                        tick={{ fill: '#45556c', fontSize: 12 }}
+                                                    />
+                                                    <YAxis
+                                                        allowDecimals={false}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                        tick={{ fill: '#45556c', fontSize: 12 }}
+                                                    />
+                                                    <ChartTooltip
+                                                        cursor={{ fill: '#f1f5f9' }}
+                                                        content={
+                                                            <ChartTooltipContent
+                                                                labelFormatter={(_, payload) => payload?.[0]?.payload?.full}
+                                                            />
+                                                        }
+                                                    />
+                                                    <Bar
+                                                        dataKey="total"
+                                                        fill="var(--color-total)"
+                                                        radius={[4, 4, 0, 0]}
+                                                        maxBarSize={36}
+                                                    />
+                                                </BarChart>
+                                            </ChartContainer>
+                                            <table className="sr-only">
+                                                <caption>Jumlah sesi per bulan</caption>
+                                                <tbody>
+                                                    {stats.monthData.map((row) => (
+                                                        <tr key={row.full}>
+                                                            <th scope="row">{row.full}</th>
+                                                            <td>{row.total}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </>
+                                    )}
+                                </div>
+                            </SectionCard>
+                        </div>
+
+                        <div className="lg:col-span-2">
+                            <SectionCard title="Status booking" description="Semua booking berdasarkan status.">
+                                <div className="px-4 pt-4">
+                                    {loading ? (
+                                        <Skeleton className="mx-auto size-44 rounded-full" />
+                                    ) : statusTotal === 0 ? (
+                                        <p className="py-4 text-sm text-slate-600">Belum ada booking.</p>
+                                    ) : (
+                                        <>
+                                            <div className="relative mx-auto h-44 w-44">
+                                                <ChartContainer config={STATUS_CHART_CONFIG} className="h-44 w-44 aspect-square">
+                                                    <PieChart>
+                                                        <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="status" />} />
+                                                        <Pie
+                                                            data={stats.statusData}
+                                                            dataKey="count"
+                                                            nameKey="status"
+                                                            innerRadius={52}
+                                                            outerRadius={84}
+                                                            paddingAngle={2}
+                                                            stroke="#ffffff"
+                                                            strokeWidth={2}
+                                                        />
+                                                    </PieChart>
+                                                </ChartContainer>
+                                                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+                                                        {statusTotal}
+                                                    </span>
+                                                    <span className="text-sm text-slate-600">booking</span>
                                                 </div>
                                             </div>
-                                            <Button variant="ghost" size="icon" asChild className="rounded-lg hover:bg-white border hover:border-slate-200 w-8 h-8 shrink-0">
-                                                <Link href="/admin/booking">
-                                                    <ArrowRight size={14} className="text-slate-500" />
-                                                </Link>
-                                            </Button>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="p-8 text-center text-slate-400 text-xs font-semibold">
-                                        No recent bookings yet.
-                                    </div>
-                                )}
-                            </CardContent>
-                            <CardFooter className="justify-center py-3 border-t border-slate-100 bg-slate-50/50">
-                                <Button variant="ghost" size="sm" asChild className="text-xs font-semibold text-slate-500 hover:text-blue-600 uppercase tracking-wider">
-                                    <Link href="/admin/booking">See all bookings</Link>
-                                </Button>
-                            </CardFooter>
-                        </Card>
+                                            <ul className="mt-4 space-y-2 pb-4 text-sm">
+                                                {stats.statusData.map((row) => (
+                                                    <li key={row.status} className="flex items-center gap-2">
+                                                        <span
+                                                            className="size-3 shrink-0 rounded-sm"
+                                                            style={{ backgroundColor: row.fill }}
+                                                            aria-hidden="true"
+                                                        />
+                                                        <span className="text-slate-700">{STATUS_META[row.status].label}</span>
+                                                        <span className="ml-auto font-semibold text-slate-900 tabular-nums">
+                                                            {row.count}
+                                                        </span>
+                                                        <span className="w-12 text-right text-slate-600 tabular-nums">
+                                                            {Math.round((row.count / statusTotal) * 100)}%
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+                                </div>
+                            </SectionCard>
+                        </div>
                     </div>
                 </div>
-
-                {/* Right Column: Calendar / Widgets */}
-                <div className="space-y-6">
-                    <Card className="rounded-2xl border-slate-200/80 bg-white">
-                        <CardHeader className="pb-4">
-                            <CardTitle className="font-bold text-slate-900 text-base">System Status</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                            <div className="p-4 bg-emerald-50/40 rounded-xl border border-emerald-100 flex items-center justify-between">
-                                <div>
-                                    <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider">Database</p>
-                                    <p className="text-sm font-bold text-emerald-900 mt-0.5">Connected</p>
-                                </div>
-                                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                            </div>
-                            <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-100">
-                                <p className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">Server Local Time</p>
-                                <p className="text-sm font-bold text-blue-900 mt-0.5">{currentTime || '--:--:--'}</p>
-                            </div>
-                        </CardContent>
-                        <CardFooter className="pt-0 border-t border-slate-100 bg-slate-50/50 p-4 rounded-b-2xl">
-                            <Button asChild className="w-full rounded-xl bg-blue-600 hover:bg-blue-500 font-semibold text-xs py-5" size="lg">
-                                <Link href="/admin/blog/create">
-                                    <FileText size={16} className="mr-2" /> Write Article
-                                </Link>
-                            </Button>
-                        </CardFooter>
-                    </Card>
-                </div>
-            </div>
+            )}
         </AdminLayout>
     );
 }

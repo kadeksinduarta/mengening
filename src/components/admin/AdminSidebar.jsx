@@ -1,91 +1,56 @@
 import Link from 'next/link';
 import { useRouter } from 'next/router';
-import { LayoutDashboard, Users, FileText, Settings, ExternalLink, Globe, Star } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
+import { ADMIN_NAV, isNavActive, formatBadge } from './nav';
 
-export default function AdminSidebar({ onClose }) {
+export default function AdminSidebar({ pendingCount = 0 }) {
     const router = useRouter();
 
-    const menuItems = [
-        { title: 'Overview', icon: LayoutDashboard, path: '/admin' },
-        { title: 'Manage Bookings', icon: Users, path: '/admin/booking' },
-        { title: 'Manage Blog', icon: FileText, path: '/admin/blog' },
-        { title: 'Manage Reviews', icon: Star, path: '/admin/review' },
-    ];
-
-    const isActive = (path) => {
-        if (path === '/admin') {
-            return router.pathname === '/admin';
-        }
-        return router.pathname.startsWith(path);
-    };
-
     return (
-        <div className="flex flex-col h-full py-6 border-r border-slate-100 bg-white">
-            {/* Logo */}
-            <div className="px-6 mb-10">
-                <Link
-                    href="/admin"
-                    className="flex items-center gap-3 group"
-                    onClick={onClose}
-                >
-                    <div className="w-25 rounded-xl flex items-center justify-center shadow-lg shadow-blue-500/20 group-hover:scale-105 transition-transform">
-                       <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-25 rounded-xl" />
-                    </div>
+        <div className="flex h-full flex-col border-r border-slate-100 bg-white py-6">
+            <div className="mb-8 px-6">
+                <Link href="/admin" className="block rounded-lg outline-none focus-visible:ring-3 focus-visible:ring-blue-600/40">
+                    <img src="/Logo_Tasya.png" alt="Tasya Melukat" width={244} height={111} className="h-auto w-28" />
                 </Link>
             </div>
 
-            {/* Menu */}
-            <nav className="flex-1 px-4 space-y-1">
-                <div className="px-3 mb-2">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Navigation</p>
-                </div>
-                {menuItems.map((item) => {
-                    const active = isActive(item.path);
+            <nav aria-label="Menu admin" className="flex-1 space-y-1 px-4">
+                {ADMIN_NAV.map((item) => {
+                    const active = isNavActive(router.pathname, item.path);
                     return (
                         <Link
                             key={item.path}
                             href={item.path}
-                            onClick={onClose}
-                            className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 ${active
-                                ? 'bg-blue-50 text-blue-600 font-semibold shadow-sm'
-                                : 'text-slate-500 hover:bg-slate-50 hover:text-slate-900'
+                            aria-current={active ? 'page' : undefined}
+                            className={`flex min-h-11 items-center gap-3 rounded-lg px-3 outline-none transition-colors focus-visible:ring-3 focus-visible:ring-blue-600/40 ${active
+                                ? 'bg-blue-50 font-semibold text-blue-800'
+                                : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
                                 }`}
                         >
-                            <item.icon size={18} className={active ? 'text-blue-600' : 'text-slate-400 group-hover:text-slate-600'} />
+                            <item.icon size={18} aria-hidden="true" />
                             <span className="text-sm">{item.title}</span>
+                            {item.badge && pendingCount > 0 && (
+                                <span className="ml-auto rounded-full bg-amber-500 px-2 py-0.5 text-xs font-semibold text-slate-900 tabular-nums">
+                                    {formatBadge(pendingCount)}
+                                    <span className="sr-only"> menunggu</span>
+                                </span>
+                            )}
                         </Link>
                     );
                 })}
             </nav>
 
-            {/* Footer / Info */}
-            <div className="px-4 mt-auto">
-                <div className="bg-slate-50 rounded-2xl p-4 border border-slate-100">
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-3">Quick Links</p>
-                    <div className="space-y-2.5">
-                        <a
-                            href="/"
-                            target="_blank"
-                            className="flex items-center justify-between text-xs text-slate-600 hover:text-blue-600 transition-colors font-medium group"
-                        >
-                            <span className="flex items-center gap-2">
-                                <Globe size={14} className="text-slate-400 group-hover:text-blue-500" />
-                                Lihat Website
-                            </span>
-                            <ExternalLink size={12} className="text-slate-400" />
-                        </a>
-                        <div className="flex items-center justify-between w-full text-xs text-slate-400 font-medium">
-                            <span className="flex items-center gap-2">
-                                <Settings size={14} className="text-slate-300" />
-                                Settings
-                            </span>
-                            <span className="text-[10px] bg-slate-200 text-slate-500 px-1.5 py-0.5 rounded font-mono">Segera</span>
-                        </div>
-                    </div>
-                </div>
-                <p className="text-center text-[10px] text-slate-400 mt-5 font-medium">
-                    &copy; 2026 Pura Mengening
-                </p>
+            <div className="px-4">
+                <a
+                    href="/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-slate-700 outline-none hover:bg-slate-50 hover:text-slate-900 focus-visible:ring-3 focus-visible:ring-blue-600/40"
+                >
+                    <ExternalLink size={18} aria-hidden="true" />
+                    Lihat Website
+                    <span className="sr-only">(tab baru)</span>
+                </a>
             </div>
         </div>
     );
