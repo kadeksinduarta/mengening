@@ -1,17 +1,39 @@
 import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { supabase } from '@/utils/supabase';
-import { motion } from 'framer-motion';
-import { Eye, EyeOff, Lock, User, AlertCircle, Globe } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle, CheckCircle2, Loader2, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
+const FOCUS_RING = 'focus-visible:border-blue-600 focus-visible:ring-blue-600/40';
+
+// Supabase menjawab dalam bahasa Inggris; panel admin berbahasa Indonesia.
+function pesanGalat(err) {
+    const message = err?.message || '';
+    if (/invalid login credentials/i.test(message)) {
+        return 'Email atau password tidak cocok. Periksa lagi, atau pakai "Lupa password?".';
+    }
+    if (/email not confirmed/i.test(message)) {
+        return 'Email ini belum dikonfirmasi. Buka tautan konfirmasi di kotak masuk Anda.';
+    }
+    if (/rate limit|too many/i.test(message)) {
+        return 'Terlalu banyak percobaan. Tunggu beberapa menit, lalu coba lagi.';
+    }
+    if (/failed to fetch|network/i.test(message)) {
+        return 'Tidak bisa terhubung. Periksa koneksi internet, lalu coba lagi.';
+    }
+    return message || 'Login gagal. Periksa kembali email dan password Anda.';
+}
+
 export default function AdminLogin() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [resetting, setResetting] = useState(false);
     const [error, setError] = useState('');
     const [info, setInfo] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -57,8 +79,7 @@ export default function AdminLogin() {
             router.replace('/admin');
         } catch (err) {
             console.error('Login error:', err.message);
-            setError(err.message || 'Login gagal. Periksa kembali email dan password Anda.');
-        } finally {
+            setError(pesanGalat(err));
             setLoading(false);
         }
     };
@@ -68,162 +89,160 @@ export default function AdminLogin() {
         setInfo('');
 
         if (!formData.email.trim()) {
-            setError('Isi dulu email Anda, lalu klik "Lupa Password?" lagi.');
+            setError('Isi dulu email Anda, lalu klik "Lupa password?" lagi.');
             return;
         }
 
+        setResetting(true);
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(
             formData.email.trim()
         );
+        setResetting(false);
 
         if (resetError) {
-            setError(resetError.message);
+            setError(pesanGalat(resetError));
             return;
         }
 
         setInfo('Tautan pengaturan ulang password sudah dikirim. Periksa kotak masuk email Anda.');
     };
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-blue-950 flex items-center justify-center p-4 font-sans relative overflow-hidden">
-            {/* Background decorative glows */}
-            <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl" />
-            <div className="absolute bottom-0 -right-4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+    const busy = loading || resetting;
 
+    return (
+        <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 px-4 py-10 font-sans">
             <Head>
-                <title>Login Admin - Pura Mengening</title>
+                <title>Masuk Admin - Tasya Melukat</title>
+                <meta name="robots" content="noindex, nofollow" />
             </Head>
 
-            <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full max-w-md relative z-10"
-            >
-                {/* Logo & Header */}
-                <div className="text-center mb-8">
-                    <motion.div 
-                        initial={{ scale: 0.8, rotate: -10 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ type: "spring", stiffness: 100 }}
-                        className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-blue-600 to-indigo-600 rounded-2xl shadow-xl shadow-blue-500/20 mb-4"
-                    >
-                        <Globe className="text-white" size={26} />
-                    </motion.div>
-                    <h1 className="text-3xl font-extrabold text-white tracking-tight">Pura Admin</h1>
-                    <p className="text-slate-400 mt-2 text-sm">Masuk untuk mengelola konten dan jadwal Melukat.</p>
+            <main className="w-full max-w-sm">
+                <div className="mb-8 flex justify-center">
+                    <img
+                        src="/Logo_Tasya.png"
+                        alt="Tasya Melukat"
+                        width={244}
+                        height={111}
+                        className="h-auto w-32"
+                    />
                 </div>
 
-                <Card className="rounded-3xl border-slate-800 bg-slate-900/60 backdrop-blur-xl shadow-2xl shadow-black/40">
-                    <CardHeader className="space-y-1.5 pb-6">
-                        <CardTitle className="text-xl text-white font-bold">Masuk ke Dashboard</CardTitle>
-                        <CardDescription className="text-slate-400">Gunakan kredensial admin Anda.</CardDescription>
+                <Card className="bg-white py-6 shadow-sm ring-slate-200 [--card-spacing:--spacing(6)]">
+                    <CardHeader>
+                        <CardTitle className="text-xl font-semibold text-slate-900">
+                            <h1>Masuk ke panel admin</h1>
+                        </CardTitle>
+                        <CardDescription className="text-slate-600">
+                            Kelola booking, ulasan, dan blog.
+                        </CardDescription>
                     </CardHeader>
+
                     <CardContent>
                         <form onSubmit={handleLogin} className="space-y-5">
-                            {error && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl flex items-center gap-3 text-sm font-medium"
-                                >
-                                    <AlertCircle size={18} className="shrink-0" />
-                                    <span>{error}</span>
-                                </motion.div>
-                            )}
-
-                            {info && (
-                                <motion.div
-                                    initial={{ opacity: 0, x: -10 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 p-4 rounded-xl flex items-center gap-3 text-sm font-medium"
-                                >
-                                    <AlertCircle size={18} className="shrink-0" />
-                                    <span>{info}</span>
-                                </motion.div>
-                            )}
-
-                            <div className="space-y-2">
-                                <Label htmlFor="email" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Email</Label>
-                                <div className="relative">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
-                                        <User size={18} />
-                                    </div>
-                                    <Input
-                                        id="email"
-                                        type="email"
-                                        name="email"
-                                        value={formData.email}
-                                        onChange={handleChange}
-                                        className="pl-11 bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-600 focus-visible:ring-blue-600 focus-visible:border-blue-600 rounded-xl"
-                                        placeholder="admin@example.com"
-                                        required
-                                    />
-                                </div>
+                            <div aria-live="polite" className="space-y-3 empty:hidden">
+                                {error && (
+                                    <Alert variant="destructive" className="border-red-200 bg-red-50 px-3 py-3">
+                                        <AlertCircle aria-hidden="true" />
+                                        <AlertDescription className="text-red-800">{error}</AlertDescription>
+                                    </Alert>
+                                )}
+                                {info && (
+                                    <Alert className="border-emerald-200 bg-emerald-50 px-3 py-3">
+                                        <CheckCircle2 aria-hidden="true" className="text-emerald-700" />
+                                        <AlertDescription className="text-emerald-800">{info}</AlertDescription>
+                                    </Alert>
+                                )}
                             </div>
 
                             <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <Label htmlFor="password" className="text-slate-300 text-xs font-bold uppercase tracking-wider">Password</Label>
+                                <Label htmlFor="email" className="text-sm font-medium text-slate-900">
+                                    Email
+                                </Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    name="email"
+                                    value={formData.email}
+                                    onChange={handleChange}
+                                    autoComplete="username"
+                                    inputMode="email"
+                                    autoCapitalize="none"
+                                    spellCheck={false}
+                                    aria-invalid={error ? true : undefined}
+                                    className={`h-11 border-slate-200 bg-white px-3 text-slate-900 placeholder:text-slate-500 ${FOCUS_RING}`}
+                                    placeholder="nama@email.com"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-2">
+                                    <Label htmlFor="password" className="text-sm font-medium text-slate-900">
+                                        Password
+                                    </Label>
                                     <button
                                         type="button"
                                         onClick={handleResetPassword}
-                                        className="text-xs text-blue-400 hover:text-blue-300 font-semibold hover:underline"
+                                        disabled={busy}
+                                        className="-my-2 inline-flex min-h-11 items-center rounded-md px-1 text-sm font-medium text-blue-700 outline-none hover:underline focus-visible:ring-3 focus-visible:ring-blue-600/40 disabled:opacity-50"
                                     >
-                                        Lupa Password?
+                                        {resetting ? 'Mengirim…' : 'Lupa password?'}
                                     </button>
                                 </div>
                                 <div className="relative">
-                                    <div className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-500">
-                                        <Lock size={18} />
-                                    </div>
                                     <Input
                                         id="password"
                                         type={showPassword ? 'text' : 'password'}
                                         name="password"
                                         value={formData.password}
                                         onChange={handleChange}
-                                        className="pl-11 pr-12 bg-slate-950/40 border-slate-800 text-white placeholder:text-slate-600 focus-visible:ring-blue-600 focus-visible:border-blue-600 rounded-xl"
-                                        placeholder="••••••••"
+                                        autoComplete="current-password"
+                                        aria-invalid={error ? true : undefined}
+                                        className={`h-11 border-slate-200 bg-white px-3 pr-12 text-slate-900 ${FOCUS_RING}`}
                                         required
                                     />
-                                    <button
+                                    <Button
                                         type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => setShowPassword((v) => !v)}
+                                        aria-label={showPassword ? 'Sembunyikan password' : 'Tampilkan password'}
+                                        aria-pressed={showPassword}
+                                        className="absolute top-0 right-0 size-11 text-slate-600 hover:text-slate-900 focus-visible:ring-blue-600/40"
                                     >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
+                                        {showPassword ? <EyeOff aria-hidden="true" /> : <Eye aria-hidden="true" />}
+                                    </Button>
                                 </div>
                             </div>
 
                             <Button
                                 type="submit"
-                                disabled={loading}
-                                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold h-11 rounded-xl transition-all shadow-lg shadow-blue-600/20"
+                                disabled={busy}
+                                className="h-11 w-full bg-blue-600 text-base font-semibold text-white hover:bg-blue-700 focus-visible:ring-blue-600/40"
                             >
                                 {loading ? (
-                                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <>
+                                        <Loader2 aria-hidden="true" className="animate-spin" />
+                                        Memeriksa…
+                                    </>
                                 ) : (
-                                    <span className="flex items-center justify-center gap-2">
-                                        Masuk Sekarang
-                                        <motion.span
-                                            animate={{ x: [0, 4, 0] }}
-                                            transition={{ duration: 1.5, repeat: Infinity }}
-                                        >
-                                            →
-                                        </motion.span>
-                                    </span>
+                                    'Masuk'
                                 )}
                             </Button>
                         </form>
                     </CardContent>
                 </Card>
 
-                <p className="text-center text-slate-600 text-xs mt-8">
-                    &copy; 2026 Pura Mengening. All rights reserved.
-                </p>
-            </motion.div>
+                <div className="mt-6 flex justify-center">
+                    <Link
+                        href="/"
+                        className="inline-flex min-h-11 items-center gap-2 rounded-md px-2 text-sm text-slate-700 outline-none hover:text-slate-900 hover:underline focus-visible:ring-3 focus-visible:ring-blue-600/40"
+                    >
+                        <ArrowLeft size={16} aria-hidden="true" />
+                        Kembali ke website
+                    </Link>
+                </div>
+            </main>
         </div>
     );
 }
