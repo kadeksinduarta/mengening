@@ -127,6 +127,52 @@ body {
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* Token semantik halaman publik. Nilainya sama persis dengan palet slate dan
+   biru Tailwind yang sebelumnya ditulis langsung di tiap komponen, jadi
+   mengganti nilai di sini mengganti seluruh tampilan sekaligus. */
+@theme {
+  /* Teks dan tinta */
+  --color-ink: oklch(20.8% 0.042 265.755);
+  --color-ink-soft: oklch(27.9% 0.041 260.031);
+  --color-body: oklch(44.6% 0.043 257.281);
+  --color-subtle: oklch(55.4% 0.046 257.417);
+  --color-faint: oklch(70.4% 0.04 256.788);
+  --color-ghost: oklch(86.9% 0.022 252.894);
+  --color-ghost-soft: oklch(92.9% 0.013 255.508);
+  --color-ghost-faint: oklch(96.8% 0.007 247.896);
+
+  /* Permukaan, isian, dan garis */
+  --color-surface-alt: oklch(98.4% 0.003 247.858);
+  --color-fill-strong: oklch(92.9% 0.013 255.508);
+  --color-rule: oklch(96.8% 0.007 247.896);
+  --color-rule-strong: oklch(92.9% 0.013 255.508);
+
+  /* Aksen merek */
+  --color-brand-deep: oklch(37.9% 0.146 265.522);
+  --color-brand-strong: oklch(48.8% 0.243 264.376);
+  --color-brand: oklch(54.6% 0.245 262.881);
+  --color-brand-bright: oklch(62.3% 0.214 259.815);
+  --color-brand-light: oklch(70.7% 0.165 254.624);
+  --color-brand-mid: oklch(80.9% 0.105 251.813);
+  --color-brand-soft: oklch(88.2% 0.059 254.128);
+  --color-brand-tint: oklch(93.2% 0.032 255.585);
+  --color-brand-wash: oklch(97% 0.014 254.604);
+}
+
+/* Dunia kertas tempel untuk beranda. Setiap warna adalah satu lembar kertas
+   yang tidak bercampur: tidak ada gradasi, bayangan, atau blur di halaman ini. */
+@theme static {
+  --color-ground: #0f3f3c;
+  --color-water: #1b6b66;
+  --color-lime: #e6ebe1;
+  /* Tint pucat dari air dan tanah liat: kertas tenang untuk bidang besar. */
+  --color-mist-water: #d5e7e3;
+  --color-mist-clay: #f0dcd1;
+  --color-brick: #a8432a;
+  --color-kuning: #f2b52b;
+  --color-stone: #14211f;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -170,5 +216,55 @@ body {
   }
   html {
     @apply font-sans;
+  }
+}
+
+/* ---- Beranda: kertas tempel ------------------------------------------------ */
+.home-world {
+  background: #fff;
+  color: var(--color-stone);
+  font-family: var(--nf-paper-body), Arial, Helvetica, sans-serif;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  scroll-behavior: smooth;
+}
+.home-world h1,
+.home-world h2,
+.home-world h3,
+.home-world .font-paper-display {
+  font-family: var(--nf-paper-display), "Arial Narrow", Arial, sans-serif;
+  text-wrap: balance;
+}
+.home-world p { text-wrap: pretty; }
+.home-world ::selection { background: var(--color-kuning); color: var(--color-stone); }
+.home-world :focus-visible {
+  outline: 3px solid var(--color-stone);
+  outline-offset: 3px;
+}
+.home-world .on-dark :focus-visible { outline-color: var(--color-kuning); }
+.home-world a { text-underline-offset: 0.2em; }
+.home-world details > summary { list-style: none; }
+.home-world details > summary::-webkit-details-marker { display: none; }
+.home-world [id] { scroll-margin-top: 5.5rem; }
+
+/* Lengkung bersarang di hero: tiap lapis menempel setelah yang di bawahnya.
+   Keadaan akhir adalah keadaan dasar, jadi tanpa animasi semuanya sudah tampak. */
+@media (prefers-reduced-motion: no-preference) {
+  .paste-layer {
+    animation: paste-in 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--i, 0) * 110ms);
+  }
+  @keyframes paste-in {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: none; }
+  }
+  /* Lembar ritual menempel saat masuk layar; peramban tanpa dukungan
+     scroll-driven animation menampilkannya langsung. */
+  @supports (animation-timeline: view()) {
+    .paste-sheet {
+      animation: paste-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 45%;
+    }
   }
 }

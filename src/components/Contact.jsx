@@ -19,9 +19,9 @@ function Contact() {
           viewport={{ once: true }}
           className="text-center mb-16"
         >
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("contact.sectionTitle")}</span>
-          <h2 className="text-4xl font-bold font-playfair text-slate-900 mb-6">{t("contact.heading")}</h2>
-          <p className="text-slate-600 max-w-2xl mx-auto font-light">
+          <span className="text-brand font-semibold tracking-wider text-sm uppercase mb-3 block">{t("contact.sectionTitle")}</span>
+          <h2 className="text-4xl font-bold font-playfair text-ink mb-6">{t("contact.heading")}</h2>
+          <p className="text-body max-w-2xl mx-auto font-light">
             {t("contact.subtitle")}
           </p>
         </motion.div>
@@ -33,32 +33,32 @@ function Contact() {
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
             viewport={{ once: true }}
-            className="bg-slate-50 rounded-[2rem] p-10 lg:p-12 shadow-xl border border-slate-100"
+            className="bg-surface-alt rounded-[2rem] p-10 lg:p-12 shadow-xl border border-rule"
           >
-            <h3 className="text-2xl font-bold font-playfair mb-8 text-slate-800">
+            <h3 className="text-2xl font-bold font-playfair mb-8 text-ink-soft">
               Pura Tirta Empul Mengening
             </h3>
 
             <div className="space-y-8">
               {/* Address */}
               <div className="flex items-start gap-5 group">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-brand flex items-center justify-center shrink-0 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
                   <MapPin size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.addressTitle")}</h4>
-                  <p className="text-slate-600 leading-relaxed font-light" dangerouslySetInnerHTML={{ __html: t("contact.addressText") }} />
+                  <h4 className="font-semibold text-ink mb-1">{t("contact.addressTitle")}</h4>
+                  <p className="text-body leading-relaxed font-light" dangerouslySetInnerHTML={{ __html: t("contact.addressText") }} />
                 </div>
               </div>
 
               {/* Email */}
               <div className="flex items-start gap-5 group">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-brand flex items-center justify-center shrink-0 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
                   <Mail size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.emailTitle")}</h4>
-                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-slate-600 hover:text-blue-600 transition-colors font-light">
+                  <h4 className="font-semibold text-ink mb-1">{t("contact.emailTitle")}</h4>
+                  <a href={`mailto:${CONTACT_EMAIL}`} className="text-body hover:text-brand transition-colors font-light">
                     {CONTACT_EMAIL}
                   </a>
                 </div>
@@ -66,12 +66,12 @@ function Contact() {
 
               {/* WhatsApp */}
               <div className="flex items-start gap-5 group">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-brand flex items-center justify-center shrink-0 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
                   <Phone size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.waTitle")}</h4>
-                  <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-blue-600 transition-colors font-light">
+                  <h4 className="font-semibold text-ink mb-1">{t("contact.waTitle")}</h4>
+                  <a href={whatsappLink()} target="_blank" rel="noopener noreferrer" className="text-body hover:text-brand transition-colors font-light">
                     +62 8585 7864 840
                   </a>
                 </div>
@@ -79,12 +79,12 @@ function Contact() {
 
               {/* Hours */}
               <div className="flex items-start gap-5 group">
-                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-blue-600 flex items-center justify-center shrink-0 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
+                <div className="w-12 h-12 bg-white rounded-xl shadow-sm text-brand flex items-center justify-center shrink-0 group-hover:bg-brand group-hover:text-white transition-colors duration-300">
                   <Clock size={24} />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-slate-900 mb-1">{t("contact.hoursTitle")}</h4>
-                  <p className="text-slate-600 font-light">{t("contact.hoursText")}</p>
+                  <h4 className="font-semibold text-ink mb-1">{t("contact.hoursTitle")}</h4>
+                  <p className="text-body font-light">{t("contact.hoursText")}</p>
                 </div>
               </div>
             </div>

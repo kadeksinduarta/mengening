@@ -65,11 +65,11 @@ export default function Navbar({ solid = false }) {
                   <a
                     href={item.href}
                     onClick={() => setActiveSection(item.id)}
-                    className={`text-sm font-medium transition-colors duration-300 hover:text-blue-500 relative group ${isSolid ? "text-slate-600" : "text-white/90 hover:text-white"
+                    className={`text-sm font-medium transition-colors duration-300 hover:text-brand-bright relative group ${isSolid ? "text-body" : "text-white/90 hover:text-white"
                       }`}
                   >
                     {item.label}
-                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-hover:w-full ${activeSection === item.id ? 'w-full' : ''}`}></span>
+                    <span className={`absolute -bottom-1 left-0 w-0 h-0.5 bg-brand-bright transition-all duration-300 group-hover:w-full ${activeSection === item.id ? 'w-full' : ''}`}></span>
                   </a>
                 </li>
               ))}
@@ -95,7 +95,7 @@ export default function Navbar({ solid = false }) {
                   asChild
                   className={`rounded-full px-6 shadow-lg ${isSolid
                       ? ""
-                      : "bg-white text-slate-900 hover:bg-gray-100"
+                      : "bg-white text-ink hover:bg-gray-100"
                     }`}
                 >
                   <Link href="/booking">
@@ -121,7 +121,7 @@ export default function Navbar({ solid = false }) {
               </Button>
 
               <button
-                className={`focus:outline-none transition-colors duration-300 ${isSolid ? "text-slate-800" : "text-white"
+                className={`focus:outline-none transition-colors duration-300 ${isSolid ? "text-ink-soft" : "text-white"
                   }`}
                 onClick={() => setIsOpen(!isOpen)}
               >
@@ -146,7 +146,7 @@ export default function Navbar({ solid = false }) {
                     <a
                       href={item.href}
                       onClick={() => setIsOpen(false)}
-                      className="block text-lg font-medium text-slate-800 hover:text-blue-600"
+                      className="block text-lg font-medium text-ink-soft hover:text-brand"
                     >
                       {item.label}
                     </a>

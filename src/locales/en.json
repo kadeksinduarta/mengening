@@ -265,5 +265,68 @@
     "body": "The address you opened does not exist or has moved. Head back to the home page, or go straight to booking if you would like to reserve a Melukat ritual.",
     "home": "Back to Home",
     "articles": "See Articles"
+  },
+  "landing": {
+    "skip": "Skip to content",
+    "nav": {
+      "ritual": "Ritual",
+      "guide": "Your guide",
+      "faq": "FAQ",
+      "menuOpen": "Open menu",
+      "menuClose": "Close menu",
+      "menuLabel": "Main menu",
+      "switchTo": "Ganti ke Bahasa Indonesia",
+      "switchShort": "ID"
+    },
+    "hero": {
+      "title": "Melukat at Pura Mengening, guided by Tasya",
+      "lead": "The Balinese water purification ritual at a holy spring in Tampaksiring. We guide every step, from making the canang offering to the closing prayer.",
+      "facts": [
+        "Small groups, up to 10 people per session",
+        "Open daily, 08:00 - 17:00 WITA",
+        "Tampaksiring, Gianyar, Bali"
+      ],
+      "book": "Book a session",
+      "ask": "Ask on WhatsApp",
+      "poster": "The spring and stone steps at Pura Mengening",
+      "pause": "Pause video",
+      "play": "Play video"
+    },
+    "step": "Step",
+    "guide": {
+      "heading": "Tasya Melukat",
+      "photoAlt": "Pura Mengening in Tampaksiring, seen from above",
+      "ask": "Ask directly on WhatsApp",
+      "title": "Guided by Tasya",
+      "caption": "Pura Mengening, Tampaksiring"
+    },
+    "momentsAria": "Photos of Pura Mengening",
+    "faqGroups": [
+      "Understanding melukat",
+      "Preparing",
+      "Booking"
+    ],
+    "reviews": {
+      "prompt": "Have you done melukat with us?",
+      "open": "Write a review",
+      "ratingGroup": "Rating"
+    },
+    "closing": {
+      "title": "Book your melukat session",
+      "flow": [
+        "Fill in the booking form.",
+        "We confirm on WhatsApp.",
+        "Pay cash on site or by bank transfer before you come."
+      ],
+      "book": "Book a session",
+      "wa": "Chat on WhatsApp",
+      "mapTitle": "Map of Pura Mengening",
+      "mapLink": "Open in Google Maps"
+    },
+    "footer": {
+      "nav": "Navigate",
+      "follow": "Follow us"
+    },
+    "photoGuests": "A group of guests in red sarongs"
   }
 }

@@ -44,6 +44,11 @@ export const GEO = {
 
 export const OPENING_HOURS = { opens: '08:00', closes: '17:00' };
 
+// --- Foto pemandu -----------------------------------------------------------
+// Path foto Tasya di public/, mis. '/tasya.webp'. Selama null, bagian pemandu di
+// beranda memakai foto pura dan tidak mengklaim itu foto Tasya.
+export const GUIDE_PHOTO = null;
+
 // --- Pembayaran -------------------------------------------------------------
 export const BANK_TRANSFER = {
     bank: 'Bank Mandiri',

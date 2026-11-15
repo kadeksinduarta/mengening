@@ -24,16 +24,16 @@ function Gallery() {
   return (
     <section
       id="gallery"
-      className="py-24 bg-slate-50"
+      className="py-24 bg-surface-alt"
     >
       <div className="container mx-auto px-6 max-w-7xl">
         {/* Judul */}
         <div className="text-center mb-16">
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("gallery.sectionTitle")}</span>
-          <h2 className="text-4xl md:text-5xl font-playfair font-bold text-slate-900 mb-6">
+          <span className="text-brand font-semibold tracking-wider text-sm uppercase mb-3 block">{t("gallery.sectionTitle")}</span>
+          <h2 className="text-4xl md:text-5xl font-playfair font-bold text-ink mb-6">
             {t("gallery.heading")}
           </h2>
-          <p className="text-slate-600 text-lg font-light max-w-2xl mx-auto">
+          <p className="text-body text-lg font-light max-w-2xl mx-auto">
             {t("gallery.subtitle")}
           </p>
         </div>
@@ -47,7 +47,7 @@ function Gallery() {
               data-aos="fade-up"
               data-aos-delay={index * 100}
             >
-              <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/30 transition-colors duration-500 z-10"></div>
+              <div className="absolute inset-0 bg-ink/0 group-hover:bg-ink/30 transition-colors duration-500 z-10"></div>
               <Image
                 src={img.src}
                 alt={img.alt}
@@ -68,7 +68,7 @@ function Gallery() {
         <div className="text-center mt-16">
           <a
             href="#contact"
-            className="inline-block px-10 py-4 border border-blue-600 text-blue-600 rounded-full font-semibold hover:bg-blue-600 hover:text-white transition duration-300"
+            className="inline-block px-10 py-4 border border-brand text-brand rounded-full font-semibold hover:bg-brand hover:text-white transition duration-300"
           >
             {t("gallery.btn")}
           </a>

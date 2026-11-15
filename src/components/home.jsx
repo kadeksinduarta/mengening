@@ -22,7 +22,7 @@ export default function Home() {
       </video>
 
       {/* Overlay: Enhanced gradient for better readability */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900/60 via-slate-900/40 to-slate-900/80"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-ink/60 via-ink/40 to-ink/80"></div>
 
       {/* Konten utama */}
       <div className="relative z-10 flex flex-col items-center justify-center h-full text-center px-4 sm:px-6 lg:px-8 text-white max-w-5xl mx-auto">
@@ -37,7 +37,7 @@ export default function Home() {
         </motion.div>
 
         <motion.p
-          className="mt-8 text-lg sm:text-xl md:text-2xl text-slate-100 leading-relaxed font-light tracking-wide max-w-3xl"
+          className="mt-8 text-lg sm:text-xl md:text-2xl text-ghost-faint leading-relaxed font-light tracking-wide max-w-3xl"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.5, duration: 1 }}
@@ -53,7 +53,7 @@ export default function Home() {
         >
           <Link
             href="/booking"
-            className="group px-10 py-5 bg-white text-slate-900 rounded-full font-bold text-lg hover:bg-blue-50 transition-all duration-300 shadow-2xl shadow-white/20 hover:shadow-white/30 hover:scale-105 active:scale-100"
+            className="group px-10 py-5 bg-white text-ink rounded-full font-bold text-lg hover:bg-brand-wash transition-all duration-300 shadow-2xl shadow-white/20 hover:shadow-white/30 hover:scale-105 active:scale-100"
           >
             <span className="flex items-center gap-2">
               {t("home.bookNow")}

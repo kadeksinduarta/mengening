@@ -16,7 +16,7 @@ export default function FAQ() {
     };
 
     return (
-        <section id="faq" className="py-24 bg-gradient-to-b from-white to-blue-50 font-sans">
+        <section id="faq" className="py-24 bg-gradient-to-b from-white to-brand-wash font-sans">
             <div className="container mx-auto px-6 max-w-4xl">
                 {/* Header */}
                 <motion.div
@@ -26,16 +26,16 @@ export default function FAQ() {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
-                        <HelpCircle className="text-blue-600" size={32} />
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-tint rounded-full mb-6">
+                        <HelpCircle className="text-brand" size={32} />
                     </div>
-                    <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">
+                    <span className="text-brand font-semibold tracking-wider text-sm uppercase mb-3 block">
                         {t("faq.sectionTitle")}
                     </span>
-                    <h2 className="text-4xl md:text-5xl font-playfair font-bold text-slate-900 mb-6">
+                    <h2 className="text-4xl md:text-5xl font-playfair font-bold text-ink mb-6">
                         {t("faq.heading")}
                     </h2>
-                    <p className="text-slate-600 text-lg max-w-2xl mx-auto font-light">
+                    <p className="text-body text-lg max-w-2xl mx-auto font-light">
                         {t("faq.subtitle")}
                     </p>
                 </motion.div>
@@ -49,13 +49,13 @@ export default function FAQ() {
                             whileInView={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.5, delay: index * 0.05 }}
                             viewport={{ once: true }}
-                            className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden hover:shadow-md transition-shadow duration-300"
+                            className="bg-white rounded-2xl shadow-sm border border-rule overflow-hidden hover:shadow-md transition-shadow duration-300"
                         >
                             <button
                                 onClick={() => toggleFAQ(index)}
-                                className="w-full px-6 md:px-8 py-6 flex items-center justify-between text-left hover:bg-slate-50 transition-colors duration-200"
+                                className="w-full px-6 md:px-8 py-6 flex items-center justify-between text-left hover:bg-surface-alt transition-colors duration-200"
                             >
-                                <span className="font-semibold text-slate-900 text-base md:text-lg pr-4">
+                                <span className="font-semibold text-ink text-base md:text-lg pr-4">
                                     {faq.q}
                                 </span>
                                 <motion.div
@@ -63,7 +63,7 @@ export default function FAQ() {
                                     transition={{ duration: 0.3 }}
                                     className="shrink-0"
                                 >
-                                    <ChevronDown className="text-blue-600" size={24} />
+                                    <ChevronDown className="text-brand" size={24} />
                                 </motion.div>
                             </button>
 
@@ -77,7 +77,7 @@ export default function FAQ() {
                                         className="overflow-hidden"
                                     >
                                         <div className="px-6 md:px-8 pb-6 pt-2">
-                                            <p className="text-slate-600 leading-relaxed">
+                                            <p className="text-body leading-relaxed">
                                                 {faq.a}
                                             </p>
                                         </div>
@@ -96,12 +96,12 @@ export default function FAQ() {
                     viewport={{ once: true }}
                     className="text-center mt-16"
                 >
-                    <p className="text-slate-600 mb-6">
+                    <p className="text-body mb-6">
                         {t("faq.moreQuestions")}
                     </p>
                     <a
                         href="#contact"
-                        className="inline-block px-8 py-4 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30"
+                        className="inline-block px-8 py-4 bg-brand text-white rounded-xl font-semibold hover:bg-brand-strong transition-colors shadow-lg shadow-brand-bright/30"
                     >
                         {t("faq.contactBtn")}
                     </a>

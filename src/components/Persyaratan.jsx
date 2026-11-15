@@ -46,7 +46,7 @@ export default function Persyaratan() {
   ];
 
   return (
-    <section id="persyaratan" className="py-28 bg-gradient-to-b from-white to-slate-50 font-sans">
+    <section id="persyaratan" className="py-28 bg-gradient-to-b from-white to-surface-alt font-sans">
       <div className="container mx-auto px-6 max-w-7xl">
         <motion.div
           className="text-center mb-20"
@@ -55,11 +55,11 @@ export default function Persyaratan() {
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
         >
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">{t("requirements.sectionTitle")}</span>
-          <h2 className="text-4xl md:text-5xl font-bold font-playfair text-slate-900 mb-6">
+          <span className="text-brand font-semibold tracking-wider text-sm uppercase mb-3 block">{t("requirements.sectionTitle")}</span>
+          <h2 className="text-4xl md:text-5xl font-bold font-playfair text-ink mb-6">
             {t("requirements.heading")}
           </h2>
-          <p className="text-slate-600 max-w-2xl mx-auto text-lg font-light leading-relaxed">
+          <p className="text-body max-w-2xl mx-auto text-lg font-light leading-relaxed">
             {t("requirements.subtitle")}
           </p>
         </motion.div>
@@ -72,13 +72,13 @@ export default function Persyaratan() {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
-              className="p-8 rounded-3xl bg-white border-2 border-slate-100 hover:border-blue-200 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/10 group cursor-pointer"
+              className="p-8 rounded-3xl bg-white border-2 border-rule hover:border-brand-soft transition-all duration-300 hover:shadow-xl hover:shadow-brand-bright/10 group cursor-pointer"
             >
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl shadow-sm flex items-center justify-center mb-6 text-blue-600 group-hover:from-blue-600 group-hover:to-blue-700 group-hover:text-white transition-all duration-300 group-hover:scale-110">
+              <div className="w-16 h-16 bg-gradient-to-br from-brand-wash to-brand-tint rounded-2xl shadow-sm flex items-center justify-center mb-6 text-brand group-hover:from-brand group-hover:to-brand-strong group-hover:text-white transition-all duration-300 group-hover:scale-110">
                 {item.icon}
               </div>
-              <h3 className="font-bold text-xl text-slate-900 mb-4">{item.title}</h3>
-              <p className="text-slate-600 leading-relaxed">{item.desc}</p>
+              <h3 className="font-bold text-xl text-ink mb-4">{item.title}</h3>
+              <p className="text-body leading-relaxed">{item.desc}</p>
             </motion.div>
           ))}
         </div>

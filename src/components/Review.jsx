@@ -32,7 +32,7 @@ function StarRating({ value, onChange }) {
             className={`w-7 h-7 transition-colors ${
               star <= display
                 ? 'fill-amber-400 text-amber-400'
-                : 'fill-transparent text-slate-300'
+                : 'fill-transparent text-ghost'
             }`}
             strokeWidth={1.5}
           />
@@ -69,7 +69,7 @@ function timeAgo(dateString, t, language) {
 
 function ReviewCard({ review, t, language }) {
   return (
-    <div className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 flex flex-col gap-4 shrink-0">
+    <div className="min-w-[280px] max-w-[280px] sm:min-w-[320px] sm:max-w-[320px] bg-white border border-rule rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300 p-6 flex flex-col gap-4 shrink-0">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-0.5">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -78,26 +78,26 @@ function ReviewCard({ review, t, language }) {
               className={`w-4 h-4 ${
                 star <= review.rating
                   ? 'fill-amber-400 text-amber-400'
-                  : 'fill-transparent text-slate-200'
+                  : 'fill-transparent text-ghost-soft'
               }`}
               strokeWidth={1.5}
             />
           ))}
         </div>
-        <Quote className="w-6 h-6 text-blue-100 shrink-0" strokeWidth={1.5} />
+        <Quote className="w-6 h-6 text-brand-tint shrink-0" strokeWidth={1.5} />
       </div>
 
-      <p className="text-slate-600 text-sm leading-relaxed line-clamp-5 flex-1">
+      <p className="text-body text-sm leading-relaxed line-clamp-5 flex-1">
         {review.message}
       </p>
 
-      <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
-        <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center font-semibold text-sm shrink-0">
+      <div className="flex items-center gap-3 pt-4 border-t border-rule">
+        <div className="w-10 h-10 rounded-full bg-brand-wash text-brand flex items-center justify-center font-semibold text-sm shrink-0">
           {initials(review.name)}
         </div>
         <div className="min-w-0">
-          <p className="text-slate-900 font-semibold text-sm truncate">{review.name}</p>
-          <p className="text-slate-400 text-xs">{timeAgo(review.created_at, t, language)}</p>
+          <p className="text-ink font-semibold text-sm truncate">{review.name}</p>
+          <p className="text-faint text-xs">{timeAgo(review.created_at, t, language)}</p>
         </div>
       </div>
     </div>
@@ -130,9 +130,9 @@ function ReviewCarousel({ reviews, emptyLabel, t, language }) {
 
   if (reviews.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-dashed border-slate-200 py-12 px-6 text-center">
-        <MessageCircle className="w-8 h-8 text-slate-300 mx-auto mb-3" strokeWidth={1.5} />
-        <p className="text-slate-500 text-sm">{emptyLabel}</p>
+      <div className="bg-white rounded-2xl border border-dashed border-rule-strong py-12 px-6 text-center">
+        <MessageCircle className="w-8 h-8 text-ghost mx-auto mb-3" strokeWidth={1.5} />
+        <p className="text-subtle text-sm">{emptyLabel}</p>
       </div>
     );
   }
@@ -158,7 +158,7 @@ function ReviewCarousel({ reviews, emptyLabel, t, language }) {
             onClick={() => scrollByCard(-1)}
             disabled={atStart}
             aria-label="Previous reviews"
-            className="w-10 h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:border-blue-300 hover:text-blue-600 transition-colors shadow-sm"
+            className="w-10 h-10 rounded-full border border-rule-strong bg-white flex items-center justify-center text-body disabled:opacity-30 disabled:cursor-not-allowed hover:border-brand-mid hover:text-brand transition-colors shadow-sm"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
@@ -167,7 +167,7 @@ function ReviewCarousel({ reviews, emptyLabel, t, language }) {
             onClick={() => scrollByCard(1)}
             disabled={atEnd}
             aria-label="Next reviews"
-            className="w-10 h-10 rounded-full border border-slate-200 bg-white flex items-center justify-center text-slate-600 disabled:opacity-30 disabled:cursor-not-allowed hover:border-blue-300 hover:text-blue-600 transition-colors shadow-sm"
+            className="w-10 h-10 rounded-full border border-rule-strong bg-white flex items-center justify-center text-body disabled:opacity-30 disabled:cursor-not-allowed hover:border-brand-mid hover:text-brand transition-colors shadow-sm"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -256,7 +256,7 @@ const Review = () => {
   };
 
   return (
-    <section id="review" className="py-24 bg-gradient-to-b from-blue-50 to-white font-sans relative overflow-hidden">
+    <section id="review" className="py-24 bg-gradient-to-b from-brand-wash to-white font-sans relative overflow-hidden">
       <div className="container mx-auto px-6 max-w-6xl">
         {/* Header */}
         <motion.div
@@ -266,21 +266,21 @@ const Review = () => {
           viewport={{ once: true }}
           className="text-center mb-14"
         >
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-6">
-            <MessageCircle className="text-blue-600" size={32} />
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-tint rounded-full mb-6">
+            <MessageCircle className="text-brand" size={32} />
           </div>
-          <span className="text-blue-600 font-semibold tracking-wider text-sm uppercase mb-3 block">
+          <span className="text-brand font-semibold tracking-wider text-sm uppercase mb-3 block">
             {t('review.sectionTitle')}
           </span>
-          <h2 className="text-4xl md:text-5xl font-playfair font-bold text-slate-900 mb-6">
+          <h2 className="text-4xl md:text-5xl font-playfair font-bold text-ink mb-6">
             {t('review.heading')}
           </h2>
-          <p className="text-slate-600 text-lg max-w-2xl mx-auto font-light mb-6">
+          <p className="text-body text-lg max-w-2xl mx-auto font-light mb-6">
             {t('review.subtitle')}
           </p>
 
           {totalReviews > 0 && (
-            <div className="inline-flex items-center gap-2 bg-white px-5 py-2.5 rounded-full shadow-sm border border-slate-100">
+            <div className="inline-flex items-center gap-2 bg-white px-5 py-2.5 rounded-full shadow-sm border border-rule">
               <div className="flex items-center gap-0.5">
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Star
@@ -288,14 +288,14 @@ const Review = () => {
                     className={`w-4 h-4 ${
                       star <= Math.round(averageRating)
                         ? 'fill-amber-400 text-amber-400'
-                        : 'fill-transparent text-slate-200'
+                        : 'fill-transparent text-ghost-soft'
                     }`}
                     strokeWidth={1.5}
                   />
                 ))}
               </div>
-              <span className="text-slate-900 font-semibold text-sm">{averageRating.toFixed(1)}</span>
-              <span className="text-slate-400 text-sm">
+              <span className="text-ink font-semibold text-sm">{averageRating.toFixed(1)}</span>
+              <span className="text-faint text-sm">
                 ({totalReviews} {totalReviews === 1 ? 'review' : 'reviews'})
               </span>
             </div>
@@ -308,9 +308,9 @@ const Review = () => {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
           viewport={{ once: true }}
-          className="max-w-xl mx-auto bg-white rounded-[2rem] p-8 md:p-10 shadow-xl border border-slate-100 mb-16"
+          className="max-w-xl mx-auto bg-white rounded-[2rem] p-8 md:p-10 shadow-xl border border-rule mb-16"
         >
-          <h3 className="text-xl font-bold font-playfair text-slate-900 mb-6 text-center">
+          <h3 className="text-xl font-bold font-playfair text-ink mb-6 text-center">
             {t('review.formTitle')}
           </h3>
           <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -320,7 +320,7 @@ const Review = () => {
               value={name}
               onChange={(e) => setName(e.target.value)}
               maxLength={80}
-              className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              className="px-4 py-3 rounded-xl bg-surface-alt border border-rule-strong placeholder-faint text-ink focus:outline-none focus:ring-2 focus:ring-brand-bright focus:border-transparent transition"
             />
             <textarea
               placeholder={t('review.messagePlaceholder')}
@@ -328,11 +328,11 @@ const Review = () => {
               onChange={(e) => setMessage(e.target.value)}
               rows={4}
               maxLength={600}
-              className="px-4 py-3 rounded-xl bg-slate-50 border border-slate-200 placeholder-slate-400 text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition resize-none"
+              className="px-4 py-3 rounded-xl bg-surface-alt border border-rule-strong placeholder-faint text-ink focus:outline-none focus:ring-2 focus:ring-brand-bright focus:border-transparent transition resize-none"
             />
 
-            <div className="flex items-center justify-between flex-wrap gap-3 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3">
-              <span className="text-sm font-medium text-slate-600">{t('review.ratingLabel')}</span>
+            <div className="flex items-center justify-between flex-wrap gap-3 bg-surface-alt border border-rule-strong rounded-xl px-4 py-3">
+              <span className="text-sm font-medium text-body">{t('review.ratingLabel')}</span>
               <StarRating value={rating} onChange={setRating} />
             </div>
 
@@ -353,7 +353,7 @@ const Review = () => {
             <button
               type="submit"
               disabled={submitting}
-              className="mt-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors shadow-lg shadow-blue-500/20"
+              className="mt-1 bg-brand hover:bg-brand-strong disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-3 px-6 rounded-xl transition-colors shadow-lg shadow-brand-bright/20"
             >
               {submitting ? t('review.submittingBtn') : t('review.submitBtn')}
             </button>
@@ -367,13 +367,13 @@ const Review = () => {
           transition={{ duration: 0.8, delay: 0.1 }}
           viewport={{ once: true }}
         >
-          <h3 className="text-lg font-bold font-playfair text-slate-900 mb-6">
+          <h3 className="text-lg font-bold font-playfair text-ink mb-6">
             {t('review.listHeading')}
           </h3>
           {loading ? (
             <div className="flex gap-4 overflow-hidden">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="min-w-[280px] sm:min-w-[320px] h-48 bg-white border border-slate-100 rounded-2xl animate-pulse shrink-0" />
+                <div key={i} className="min-w-[280px] sm:min-w-[320px] h-48 bg-white border border-rule rounded-2xl animate-pulse shrink-0" />
               ))}
             </div>
           ) : (

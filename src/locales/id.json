@@ -265,5 +265,68 @@
     "body": "Alamat yang Anda buka tidak ada atau sudah dipindahkan. Silakan kembali ke beranda, atau langsung menuju halaman booking bila ingin memesan ritual Melukat.",
     "home": "Kembali ke Beranda",
     "articles": "Lihat Artikel"
+  },
+  "landing": {
+    "skip": "Langsung ke konten",
+    "nav": {
+      "ritual": "Ritual",
+      "guide": "Pemandu",
+      "faq": "FAQ",
+      "menuOpen": "Buka menu",
+      "menuClose": "Tutup menu",
+      "menuLabel": "Menu utama",
+      "switchTo": "Ganti ke English",
+      "switchShort": "EN"
+    },
+    "hero": {
+      "title": "Melukat di Pura Mengening, dipandu Tasya",
+      "lead": "Ritual penyucian diri dengan air mata air suci di Tampaksiring, Bali. Kami mendampingi setiap langkahnya, dari membuat canang sampai sembahyang penutup.",
+      "facts": [
+        "Grup kecil, maksimal 10 orang per sesi",
+        "Buka setiap hari, 08:00 - 17:00 WITA",
+        "Tampaksiring, Gianyar, Bali"
+      ],
+      "book": "Pesan sesi",
+      "ask": "Tanya lewat WhatsApp",
+      "poster": "Mata air dan anak tangga batu di Pura Mengening",
+      "pause": "Jeda video",
+      "play": "Putar video"
+    },
+    "step": "Langkah",
+    "guide": {
+      "heading": "Tasya Melukat",
+      "photoAlt": "Pura Mengening di Tampaksiring, dilihat dari atas",
+      "ask": "Tanya langsung lewat WhatsApp",
+      "title": "Dipandu oleh Tasya",
+      "caption": "Pura Mengening, Tampaksiring"
+    },
+    "momentsAria": "Foto-foto Pura Mengening",
+    "faqGroups": [
+      "Memahami melukat",
+      "Persiapan",
+      "Pemesanan"
+    ],
+    "reviews": {
+      "prompt": "Pernah melukat bersama kami?",
+      "open": "Tulis ulasan",
+      "ratingGroup": "Penilaian"
+    },
+    "closing": {
+      "title": "Pesan sesi melukat Anda",
+      "flow": [
+        "Isi form pemesanan.",
+        "Kami konfirmasi lewat WhatsApp.",
+        "Bayar tunai di lokasi atau transfer bank sebelum datang."
+      ],
+      "book": "Pesan sesi",
+      "wa": "Chat WhatsApp",
+      "mapTitle": "Peta lokasi Pura Mengening",
+      "mapLink": "Buka di Google Maps"
+    },
+    "footer": {
+      "nav": "Navigasi",
+      "follow": "Ikuti kami"
+    },
+    "photoGuests": "Rombongan tamu berkain merah"
   }
 }

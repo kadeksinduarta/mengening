@@ -24,7 +24,7 @@ export default function WhatsappButton() {
         <FaWhatsapp className="text-3xl md:text-4xl relative z-10" />
       </a>
       {/* Tooltip */}
-      <span className="absolute right-full mr-4 bg-white text-slate-800 text-xs font-bold px-3 py-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
+      <span className="absolute right-full mr-4 bg-white text-ink-soft text-xs font-bold px-3 py-2 rounded-lg shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap">
         Chat Kami
       </span>
     </div>

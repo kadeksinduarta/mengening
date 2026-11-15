@@ -11,13 +11,13 @@ const Footer = () => {
   );
 
   return (
-    <footer className="bg-slate-900 text-slate-400 font-sans border-t border-slate-800">
+    <footer className="bg-ink text-faint font-sans border-t border-ink-soft">
       <div className="container mx-auto px-6 py-16">
                   <div className="flex flex-col md:flex-row justify-between items-center text-center md:text-left mb-12">
           <div className="flex items-center gap-4 mb-6 md:mb-0">
-            <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 rounded-2xl shadow-2xl shadow-blue-500/20" />
+            <img src="/Logo_Tasya.png" alt="Tasya Melukat" className="w-16 rounded-2xl shadow-2xl shadow-brand-bright/20" />
             <div>
-              <p className="text-slate-500 text-sm tracking-wide">{t("footer.location")}</p>
+              <p className="text-subtle text-sm tracking-wide">{t("footer.location")}</p>
             </div>
           </div>
 
@@ -25,7 +25,7 @@ const Footer = () => {
             {/* Instagram */}
             <a
               href="https://www.instagram.com/aprl_tasyya"
-              className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-pink-600 hover:text-white transition-all duration-300"
+              className="w-10 h-10 rounded-full bg-ink-soft flex items-center justify-center hover:bg-pink-600 hover:text-white transition-all duration-300"
               aria-label="Instagram"
               target="_blank"
               rel="noopener noreferrer"
@@ -38,7 +38,7 @@ const Footer = () => {
             {/* WhatsApp */}
             <a
               href={`https://api.whatsapp.com/send?phone=${whatsappNumber}&text=${whatsappMessage}`}
-              className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-green-500 hover:text-white transition-all duration-300"
+              className="w-10 h-10 rounded-full bg-ink-soft flex items-center justify-center hover:bg-green-500 hover:text-white transition-all duration-300"
               aria-label="WhatsApp"
               target="_blank"
               rel="noopener noreferrer"
@@ -50,14 +50,14 @@ const Footer = () => {
           </div>
         </div>
 
-        <div className="w-full h-px bg-slate-800 mb-8"></div>
+        <div className="w-full h-px bg-ink-soft mb-8"></div>
 
         {/* Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-center text-sm">
           <p className="mb-4 md:mb-0">
             &copy; {new Date().getFullYear()} Tasya Melukat Mengening. {t("footer.rights")}
           </p>
-          <div className="flex space-x-6 text-slate-500">
+          <div className="flex space-x-6 text-subtle">
             <Link href="/kebijakan-privasi" className="hover:text-white transition-colors">{t("footer.privacy")}</Link>
           </div>
         </div>

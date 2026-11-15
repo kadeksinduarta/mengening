@@ -311,6 +311,119 @@ export default function AdminDashboard() {
                 </Alert>
             ) : (
                 <div className="space-y-6">
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
+                        <div className="lg:col-span-3">
+                            <SectionCard title="Sesi per bulan" description="Tiga bulan lalu sampai dua bulan ke depan, tanpa yang dibatalkan.">
+                                <div className="px-4 pt-4">
+                                    {loading ? (
+                                        <Skeleton className="h-56 w-full" />
+                                    ) : (
+                                        <>
+                                            <ChartContainer config={MONTH_CHART_CONFIG} className="h-56 w-full">
+                                                <BarChart data={stats.monthData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
+                                                    <CartesianGrid vertical={false} stroke="#e2e8f0" />
+                                                    <XAxis
+                                                        dataKey="label"
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                        tick={{ fill: '#45556c', fontSize: 12 }}
+                                                    />
+                                                    <YAxis
+                                                        allowDecimals={false}
+                                                        tickLine={false}
+                                                        axisLine={false}
+                                                        tick={{ fill: '#45556c', fontSize: 12 }}
+                                                    />
+                                                    <ChartTooltip
+                                                        cursor={{ fill: '#f1f5f9' }}
+                                                        content={
+                                                            <ChartTooltipContent
+                                                                labelFormatter={(_, payload) => payload?.[0]?.payload?.full}
+                                                            />
+                                                        }
+                                                    />
+                                                    <Bar
+                                                        dataKey="total"
+                                                        fill="var(--color-total)"
+                                                        radius={[4, 4, 0, 0]}
+                                                        maxBarSize={36}
+                                                    />
+                                                </BarChart>
+                                            </ChartContainer>
+                                            <table className="sr-only">
+                                                <caption>Jumlah sesi per bulan</caption>
+                                                <tbody>
+                                                    {stats.monthData.map((row) => (
+                                                        <tr key={row.full}>
+                                                            <th scope="row">{row.full}</th>
+                                                            <td>{row.total}</td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </>
+                                    )}
+                                </div>
+                            </SectionCard>
+                        </div>
+
+                        <div className="lg:col-span-2">
+                            <SectionCard title="Status booking" description="Semua booking berdasarkan status.">
+                                <div className="px-4 pt-4">
+                                    {loading ? (
+                                        <Skeleton className="mx-auto size-44 rounded-full" />
+                                    ) : statusTotal === 0 ? (
+                                        <p className="py-4 text-sm text-slate-600">Belum ada booking.</p>
+                                    ) : (
+                                        <>
+                                            <div className="relative mx-auto h-44 w-44">
+                                                <ChartContainer config={STATUS_CHART_CONFIG} className="h-44 w-44 aspect-square">
+                                                    <PieChart>
+                                                        <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="status" />} />
+                                                        <Pie
+                                                            data={stats.statusData}
+                                                            dataKey="count"
+                                                            nameKey="status"
+                                                            innerRadius={52}
+                                                            outerRadius={84}
+                                                            paddingAngle={2}
+                                                            stroke="#ffffff"
+                                                            strokeWidth={2}
+                                                        />
+                                                    </PieChart>
+                                                </ChartContainer>
+                                                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+                                                    <span className="text-2xl font-semibold text-slate-900 tabular-nums">
+                                                        {statusTotal}
+                                                    </span>
+                                                    <span className="text-sm text-slate-600">booking</span>
+                                                </div>
+                                            </div>
+                                            <ul className="mt-4 space-y-2 pb-4 text-sm">
+                                                {stats.statusData.map((row) => (
+                                                    <li key={row.status} className="flex items-center gap-2">
+                                                        <span
+                                                            className="size-3 shrink-0 rounded-sm"
+                                                            style={{ backgroundColor: row.fill }}
+                                                            aria-hidden="true"
+                                                        />
+                                                        <span className="text-slate-700">{STATUS_META[row.status].label}</span>
+                                                        <span className="ml-auto font-semibold text-slate-900 tabular-nums">
+                                                            {row.count}
+                                                        </span>
+                                                        <span className="w-12 text-right text-slate-600 tabular-nums">
+                                                            {Math.round((row.count / statusTotal) * 100)}%
+                                                        </span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        </>
+                                    )}
+                                </div>
+                            </SectionCard>
+                        </div>
+                    </div>
+
                     <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
                         <p className="text-sm text-slate-600">
                             <span className="tabular-nums">{loading ? '-' : blogsCount}</span> artikel di blog
@@ -444,119 +557,6 @@ export default function AdminDashboard() {
                                         </ul>
                                     ) : (
                                         <EmptyRow>Tidak ada sesi pada tanggal ini.</EmptyRow>
-                                    )}
-                                </div>
-                            </SectionCard>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-5">
-                        <div className="lg:col-span-3">
-                            <SectionCard title="Sesi per bulan" description="Tiga bulan lalu sampai dua bulan ke depan, tanpa yang dibatalkan.">
-                                <div className="px-4 pt-4">
-                                    {loading ? (
-                                        <Skeleton className="h-56 w-full" />
-                                    ) : (
-                                        <>
-                                            <ChartContainer config={MONTH_CHART_CONFIG} className="h-56 w-full">
-                                                <BarChart data={stats.monthData} margin={{ top: 8, right: 0, left: -20, bottom: 0 }}>
-                                                    <CartesianGrid vertical={false} stroke="#e2e8f0" />
-                                                    <XAxis
-                                                        dataKey="label"
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                        tick={{ fill: '#45556c', fontSize: 12 }}
-                                                    />
-                                                    <YAxis
-                                                        allowDecimals={false}
-                                                        tickLine={false}
-                                                        axisLine={false}
-                                                        tick={{ fill: '#45556c', fontSize: 12 }}
-                                                    />
-                                                    <ChartTooltip
-                                                        cursor={{ fill: '#f1f5f9' }}
-                                                        content={
-                                                            <ChartTooltipContent
-                                                                labelFormatter={(_, payload) => payload?.[0]?.payload?.full}
-                                                            />
-                                                        }
-                                                    />
-                                                    <Bar
-                                                        dataKey="total"
-                                                        fill="var(--color-total)"
-                                                        radius={[4, 4, 0, 0]}
-                                                        maxBarSize={36}
-                                                    />
-                                                </BarChart>
-                                            </ChartContainer>
-                                            <table className="sr-only">
-                                                <caption>Jumlah sesi per bulan</caption>
-                                                <tbody>
-                                                    {stats.monthData.map((row) => (
-                                                        <tr key={row.full}>
-                                                            <th scope="row">{row.full}</th>
-                                                            <td>{row.total}</td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </>
-                                    )}
-                                </div>
-                            </SectionCard>
-                        </div>
-
-                        <div className="lg:col-span-2">
-                            <SectionCard title="Status booking" description="Semua booking berdasarkan status.">
-                                <div className="px-4 pt-4">
-                                    {loading ? (
-                                        <Skeleton className="mx-auto size-44 rounded-full" />
-                                    ) : statusTotal === 0 ? (
-                                        <p className="py-4 text-sm text-slate-600">Belum ada booking.</p>
-                                    ) : (
-                                        <>
-                                            <div className="relative mx-auto h-44 w-44">
-                                                <ChartContainer config={STATUS_CHART_CONFIG} className="h-44 w-44 aspect-square">
-                                                    <PieChart>
-                                                        <ChartTooltip content={<ChartTooltipContent hideLabel nameKey="status" />} />
-                                                        <Pie
-                                                            data={stats.statusData}
-                                                            dataKey="count"
-                                                            nameKey="status"
-                                                            innerRadius={52}
-                                                            outerRadius={84}
-                                                            paddingAngle={2}
-                                                            stroke="#ffffff"
-                                                            strokeWidth={2}
-                                                        />
-                                                    </PieChart>
-                                                </ChartContainer>
-                                                <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-                                                    <span className="text-2xl font-semibold text-slate-900 tabular-nums">
-                                                        {statusTotal}
-                                                    </span>
-                                                    <span className="text-sm text-slate-600">booking</span>
-                                                </div>
-                                            </div>
-                                            <ul className="mt-4 space-y-2 pb-4 text-sm">
-                                                {stats.statusData.map((row) => (
-                                                    <li key={row.status} className="flex items-center gap-2">
-                                                        <span
-                                                            className="size-3 shrink-0 rounded-sm"
-                                                            style={{ backgroundColor: row.fill }}
-                                                            aria-hidden="true"
-                                                        />
-                                                        <span className="text-slate-700">{STATUS_META[row.status].label}</span>
-                                                        <span className="ml-auto font-semibold text-slate-900 tabular-nums">
-                                                            {row.count}
-                                                        </span>
-                                                        <span className="w-12 text-right text-slate-600 tabular-nums">
-                                                            {Math.round((row.count / statusTotal) * 100)}%
-                                                        </span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </>
                                     )}
                                 </div>
                             </SectionCard>
